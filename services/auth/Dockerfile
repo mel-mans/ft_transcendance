@@ -37,4 +37,4 @@ USER devops_user
 # - compilers or build tools
 
 EXPOSE 3004
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+CMD ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && node dist/main.js"]

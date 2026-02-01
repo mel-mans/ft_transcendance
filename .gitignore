@@ -1,5 +1,8 @@
 # Elasticsearch data
 infrastructure/logging/elasticsearch/nodes/
+# Logstash data
+infrastructure/logging/logstash/plugins/
+infrastructure/logging/logstash/data/
 
 # Environment files (keep .env.example if you have one)
 .env.local

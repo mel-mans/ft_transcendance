@@ -44,7 +44,10 @@ services:
     image: auth
     ports:
       - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
-      - "5555:5555"
+      - "5555:5555"  # Prisma Studio port
+    volumes:
+      - ./services/auth/prisma:/app/prisma
+      - ./services/auth/src:/app/src  
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://auth:3004/api/auth" ]
       interval: 2s
