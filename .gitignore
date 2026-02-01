@@ -1,0 +1,20 @@
+# Elasticsearch data
+infrastructure/logging/elasticsearch/nodes/
+
+# Environment files (keep .env.example if you have one)
+.env.local
+
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
