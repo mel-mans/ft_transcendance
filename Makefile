@@ -9,6 +9,6 @@ up:
 
 # Important: Clean everything including certs for a fresh start
 fclean:
-	docker-compose down -v
+	docker compose down -v
 	
 	rm -f ./infrastructure/nginx/certs/*.crt ./infrastructure/nginx/certs/*.key
