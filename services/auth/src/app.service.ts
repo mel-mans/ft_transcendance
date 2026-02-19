@@ -1,50 +1,98 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from './prisma.service';
+import { SignupDto } from './dto/signup.dto';
+import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
-// Injectable - Marks the class as a provider that can be injected
-// ConflictException - Error when user already exists (HTTP 409)
-// PrismaService - Database connection (we already have this file!)
-// bcrypt - Password hashing library
 
 @Injectable()
 export class AppService {
-    constructor(private prisma: PrismaService) {}
+    constructor(private prisma: PrismaService, private jwtService: JwtService,) {}
+    
     getHello(): string {
         return 'Hello from Auth Service!';
     }
 
-    async signup(email: string, username: string, password: string) {
-    // Step 1: Check if user already exists
-    const existingUser = await this.prisma.user.findFirst({
-        where: {
-        OR: [
-            { email: email },
-            { username: username }
-        ],
-        },
-    });
+    async signup(signupDto: SignupDto) {
+        const { email, username, password, firstName, lastName } = signupDto;
 
-    if (existingUser) {
-        throw new ConflictException('Email or username already exists');
+        // Step 1: Check if user already exists
+        const existingUser = await this.prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email: email },
+                    { username: username }
+                ],
+            },
+        });
+
+        if (existingUser) {
+            throw new ConflictException('Email or username already exists');
+        }
+
+        // Step 2: Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Step 3: Create user in database
+        const user = await this.prisma.user.create({
+            data: {
+                email,
+                username,
+                password: hashedPassword,
+                firstName,
+                lastName,
+                // Default values are handled by Prisma schema
+            },
+        });
+
+        // Step 4: Remove password from response
+        const { password: _, ...result } = user;
+        return {
+            message: 'User created successfully',
+            user: result,
+        };
     }
 
-    // Step 2: Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Step 3: Create user in database
-    const user = await this.prisma.user.create({
-        data: {
-        email,
-        username,
-        password: hashedPassword,
-        },
-    });
+    // ========== NEW: LOGIN METHOD ==========
+    async login(loginDto: LoginDto) {
+        const { email, password } = loginDto;
 
-    // Step 4: Remove password from response
-    const { password: _, ...result } = user;
-    return {
-        message: 'User created successfully',
-        user: result,
-    };
+        // Step 1: Find user by email
+        const user = await this.prisma.user.findUnique({
+            where: { email },
+        });
+
+        // Step 2: Check if user exists
+        if (!user) {
+            throw new UnauthorizedException('Invalid credentials');
+        }
+
+        // Step 3: Verify password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        
+        if (!isPasswordValid) {
+            throw new UnauthorizedException('Invalid credentials');
+        }
+
+        // Step 4: Create JWT payload
+        // This is the data that will be encoded in the token
+        const payload = {
+            sub: user.id,        // 'sub' is JWT standard for user ID
+            email: user.email,
+            username: user.username,
+        };
+
+        // Step 5: Generate JWT token
+        const accessToken = this.jwtService.sign(payload);
+
+        // Step 6: Return token and user info (without password!)
+        const { password: _, ...userWithoutPassword } = user;
+        
+        return {
+            message: 'Login successful',
+            access_token: accessToken,
+            user: userWithoutPassword,
+        };
     }
 }
