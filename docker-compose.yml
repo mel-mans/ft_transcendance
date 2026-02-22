@@ -59,6 +59,12 @@ services:
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@postgres_db:5432/auth_db?schema=public
     networks:
       - microservices_network
+<<<<<<< HEAD
+=======
+    depends_on:
+      postgres:
+        condition: service_healthy
+>>>>>>> 8a306b6d (adding some new endpoints)
   chat:
     container_name: chat
     build: services/chat
@@ -83,7 +89,11 @@ services:
     ports:
       - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
     healthcheck:
+<<<<<<< HEAD
       test: [ "CMD", "curl", "-f", "http://user:3002/api/user" ]
+=======
+      test: [ "CMD", "curl", "-f", "http://user:3002/api/users" ]
+>>>>>>> 8a306b6d (adding some new endpoints)
       interval: 2s
       timeout: 5s
       retries: 2
@@ -91,16 +101,29 @@ services:
       - .env
     networks:
       - microservices_network
+<<<<<<< HEAD
 
   postgres:
     image: postgres
+=======
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16
+>>>>>>> 8a306b6d (adding some new endpoints)
     container_name: postgres_db
     restart: unless-stopped
     ports:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - ./infrastructure/postgres/init/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+<<<<<<< HEAD
       # - postgres_data:/var/lib/postgresql/data
+=======
+      - postgres_data:/var/lib/postgresql/data
+>>>>>>> 8a306b6d (adding some new endpoints)
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "${DB_USER}" ]
       interval: 2s
@@ -111,12 +134,15 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: ${DB_NAME}
+<<<<<<< HEAD
     depends_on:
       - nginx
       - auth
       - chat
       - user
       - front
+=======
+>>>>>>> 8a306b6d (adding some new endpoints)
     networks:
       - microservices_network
 
@@ -224,3 +250,9 @@ networks:
     driver: bridge
   logging:
     driver: bridge
+<<<<<<< HEAD
+=======
+volumes:
+  postgres_data:
+    driver: local
+>>>>>>> 8a306b6d (adding some new endpoints)

@@ -21,3 +21,10 @@ logs/
 # OS files
 .DS_Store
 Thumbs.db
+<<<<<<< HEAD
+=======
+
+# Git backup directories
+.git.backup.*
+
+>>>>>>> 8a306b6d (adding some new endpoints)

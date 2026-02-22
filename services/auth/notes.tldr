@@ -42,8 +42,13 @@
 			"typeName": "pointer"
 		},
 		{
+<<<<<<< HEAD
 			"x": 318.84375,
 			"y": -57.51200540937515,
+=======
+			"x": 733.9921875,
+			"y": -56.2392578125,
+>>>>>>> 8a306b6d (adding some new endpoints)
 			"z": 1,
 			"meta": {},
 			"id": "camera:page:page",
@@ -204,12 +209,21 @@
 			"typeName": "shape"
 		},
 		{
+<<<<<<< HEAD
 			"editingShapeId": "shape:hDnCjIxkSzgjddFfmcvGU",
 			"croppingShapeId": null,
 			"selectedShapeIds": [
 				"shape:hDnCjIxkSzgjddFfmcvGU"
 			],
 			"hoveredShapeId": null,
+=======
+			"editingShapeId": "shape:XtLb65z3-UWfJ07a6xIwX",
+			"croppingShapeId": null,
+			"selectedShapeIds": [
+				"shape:XtLb65z3-UWfJ07a6xIwX"
+			],
+			"hoveredShapeId": "shape:XtLb65z3-UWfJ07a6xIwX",
+>>>>>>> 8a306b6d (adding some new endpoints)
 			"erasingShapeIds": [],
 			"hintingShapeIds": [],
 			"focusedGroupId": null,
@@ -249,8 +263,13 @@
 			"screenBounds": {
 				"x": 0,
 				"y": 0,
+<<<<<<< HEAD
 				"w": 1062,
 				"h": 557
+=======
+				"w": 1481,
+				"h": 696
+>>>>>>> 8a306b6d (adding some new endpoints)
 			},
 			"insets": [
 				false,
@@ -279,6 +298,137 @@
 			"typeName": "instance"
 		},
 		{
+<<<<<<< HEAD
+=======
+			"x": -258.59375,
+			"y": 463.572265625,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:XtLb65z3-UWfJ07a6xIwX",
+			"type": "text",
+			"props": {
+				"color": "black",
+				"size": "s",
+				"w": 530.203125,
+				"font": "draw",
+				"textAlign": "start",
+				"autoSize": true,
+				"scale": 1,
+				"richText": {
+					"type": "doc",
+					"attrs": {
+						"dir": "auto"
+					},
+					"content": [
+						{
+							"type": "heading",
+							"attrs": {
+								"dir": "auto",
+								"level": 3
+							},
+							"content": [
+								{
+									"type": "text",
+									"marks": [
+										{
+											"type": "bold"
+										}
+									],
+									"text": "In Auth Service (what I built):"
+								}
+							]
+						},
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "typescript"
+								}
+							]
+						},
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"marks": [
+										{
+											"type": "code"
+										}
+									],
+									"text": "// Keep only: - POST /auth/signup "
+								}
+							]
+						},
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"marks": [
+										{
+											"type": "code"
+										}
+									],
+									"text": "- POST /auth/login "
+								}
+							]
+						},
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"marks": [
+										{
+											"type": "code"
+										}
+									],
+									"text": "- POST /auth/refresh-token (if you add it later) "
+								}
+							]
+						},
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"marks": [
+										{
+											"type": "code"
+										}
+									],
+									"text": "- POST /auth/logout (if you add it later)"
+								}
+							]
+						}
+					]
+				}
+			},
+			"parentId": "page:page",
+			"index": "a4KF4BzG",
+			"typeName": "shape"
+		},
+		{
+>>>>>>> 8a306b6d (adding some new endpoints)
 			"x": -41,
 			"y": 180,
 			"rotation": 0,

@@ -73,6 +73,40 @@
 			"typeName": "shape"
 		},
 		{
+<<<<<<< HEAD
+=======
+			"x": 184.89102619449937,
+			"y": 362.7995954912628,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:gcKxbQAxIUJW_M_AlWFxs",
+			"type": "draw",
+			"props": {
+				"segments": [
+					{
+						"type": "free",
+						"path": "AAAAAAAAAAAAAAA/AEAAAAAAAEQAQAAAAEQAQAAAAEQAAAAAAEgAAAAAAEYAAAAAAEYAAAAAAEgAAAAAAEkAAAAAAEgAAAAAAEoAAAAAAEwAAAAAAEwAAAAAgEwAAAAAAE4AAAAAgEwAAAAAAEwAAAAAAEsAAAAAAE0AAAAAAEsAAAAAAEgAAAAAAEoAAAAAAEkAAAAAAEgAAAAAAEkAAAAAAEoAAAAAAEoAAAAAAEoAAAAAAEoAAAAAAEkAAAAAAEYAAAAAAEgAAAAAAEkAAAAAAEgAAAAAAEYAQAAAAEYAAAAAAEkAAAAAAEYAAAAAAEgAAAAAAEgAAAAAAEkAAAAAAEYAAAAAAEgAAAAAAEkAAAAAAEgAAAAAAEoAAAAAAEYAAAAAAEgAAAAAAEkAAAAAAEgAAAAAAEQAAAAAAEYAAAAAAEQAAAAAAEYAAAAAAEQAAAAAAEYAAAAAAEQAAAAAAEYAAAAAAEQAAAAAAEAAAAAAAEQAAAAAAEAAAAAAAEAAAAAAAEAAAAAAAEQAAAAAAEQAwAAAAEAAAAAAAEQAAAAAAEAAAAAAAEQAwAAAAEQAAAAAAEAAAAAAAEAAAAAAAEQAwAAAAEAAAAAAAEAAwAAAAEAAAAAAAEAAAAAA"
+					}
+				],
+				"color": "red",
+				"fill": "none",
+				"dash": "draw",
+				"size": "m",
+				"isComplete": true,
+				"isClosed": false,
+				"isPen": false,
+				"scale": 1,
+				"scaleX": 1,
+				"scaleY": 1
+			},
+			"parentId": "page:page",
+			"index": "aBOzMpLG",
+			"typeName": "shape"
+		},
+		{
+>>>>>>> 8a306b6d (adding some new endpoints)
 			"x": 1010,
 			"y": 337.5,
 			"rotation": 0,
@@ -104,20 +138,65 @@
 			"typeName": "shape"
 		},
 		{
+<<<<<<< HEAD
 			"x": 104,
 			"y": 104.5,
+=======
+			"x": -287.5452136975198,
+			"y": -149.763264754487,
+>>>>>>> 8a306b6d (adding some new endpoints)
 			"z": 0.5,
 			"meta": {},
 			"id": "camera:page:page",
 			"typeName": "camera"
 		},
 		{
+<<<<<<< HEAD
 			"editingShapeId": null,
 			"croppingShapeId": null,
 			"selectedShapeIds": [
 				"shape:QvEuWDOF9NEDS4t-6ik6I"
 			],
 			"hoveredShapeId": "shape:QvEuWDOF9NEDS4t-6ik6I",
+=======
+			"x": 203.42150309557826,
+			"y": 402.50776027928896,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:0uI06eZ1dgr9uSVCuXzuF",
+			"type": "draw",
+			"props": {
+				"segments": [
+					{
+						"type": "free",
+						"path": "AAAAAAAAAAAAAAA/AEAAAAAAAEQAQAAAAEQAQAAAAEQAAAAAAEgAAAAAAEYAAAAAAEYAAAAAAEgAAAAAAEkAAAAAAEgAAAAAAEoAAAAAAEwAAAAAAEwAAAAAgEwAAAAAAE4AAAAAgEwAAAAAAEwAAAAAAEsAAAAAAE0AAAAAAEsAAAAAAEgAAAAAAEoAAAAAAEkAAAAAAEgAAAAAAEkAAAAAAEoAAAAAAEoAAAAAAEoAAAAAAEoAAAAAAEkAAAAAAEYAAAAAAEgAAAAAAEkAAAAAAEgAAAAAAEYAQAAAAEYAAAAAAEkAAAAAAEYAAAAAAEgAAAAAAEgAAAAAAEkAAAAAAEYAAAAAAEgAAAAAAEkAAAAAAEgAAAAAAEoAAAAAAEYAAAAAAEgAAAAAAEkAAAAAAEgAAAAAAEQAAAAAAEYAAAAAAEQAAAAAAEYAAAAAAEQAAAAAAEYAAAAAAEQAAAAAAEYAAAAAAEQAAAAAAEAAAAAAAEQAAAAAAEAAAAAAAEAAAAAAAEAAAAAAAEQAAAAAAEQAwAAAAEAAAAAAAEQAAAAAAEAAAAAAAEQAwAAAAEQAAAAAAEAAAAAAAEAAAAAAAEQAwAAAAEAAAAAAAEAAwAAAAEAAAAAAAEAAAAAA"
+					}
+				],
+				"color": "red",
+				"fill": "none",
+				"dash": "draw",
+				"size": "m",
+				"isComplete": true,
+				"isClosed": false,
+				"isPen": false,
+				"scale": 1,
+				"scaleX": 1,
+				"scaleY": 1
+			},
+			"parentId": "page:page",
+			"index": "aCgilMmV",
+			"typeName": "shape"
+		},
+		{
+			"editingShapeId": "shape:KvuKi-O_QutRWrP_RQt3R",
+			"croppingShapeId": null,
+			"selectedShapeIds": [
+				"shape:KvuKi-O_QutRWrP_RQt3R"
+			],
+			"hoveredShapeId": null,
+>>>>>>> 8a306b6d (adding some new endpoints)
 			"erasingShapeIds": [],
 			"hintingShapeIds": [],
 			"focusedGroupId": null,
@@ -127,6 +206,40 @@
 			"typeName": "instance_page_state"
 		},
 		{
+<<<<<<< HEAD
+=======
+			"x": 34,
+			"y": 267.5,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:-I0J1MYYvrk1dFEgv_YEq",
+			"type": "draw",
+			"props": {
+				"segments": [
+					{
+						"type": "free",
+						"path": "AAAAAAAAAAAAAAA/AEAAAAAAAEQAQAAAAEQAQAAAAEQAAAAAAEgAAAAAAEYAAAAAAEYAAAAAAEgAAAAAAEkAAAAAAEgAAAAAAEoAAAAAAEwAAAAAAEwAAAAAgEwAAAAAAE4AAAAAgEwAAAAAAEwAAAAAAEsAAAAAAE0AAAAAAEsAAAAAAEgAAAAAAEoAAAAAAEkAAAAAAEgAAAAAAEkAAAAAAEoAAAAAAEoAAAAAAEoAAAAAAEoAAAAAAEkAAAAAAEYAAAAAAEgAAAAAAEkAAAAAAEgAAAAAAEYAQAAAAEYAAAAAAEkAAAAAAEYAAAAAAEgAAAAAAEgAAAAAAEkAAAAAAEYAAAAAAEgAAAAAAEkAAAAAAEgAAAAAAEoAAAAAAEYAAAAAAEgAAAAAAEkAAAAAAEgAAAAAAEQAAAAAAEYAAAAAAEQAAAAAAEYAAAAAAEQAAAAAAEYAAAAAAEQAAAAAAEYAAAAAAEQAAAAAAEAAAAAAAEQAAAAAAEAAAAAAAEAAAAAAAEAAAAAAAEQAAAAAAEQAwAAAAEAAAAAAAEQAAAAAAEAAAAAAAEQAwAAAAEQAAAAAAEAAAAAAAEAAAAAAAEQAwAAAAEAAAAAAAEAAwAAAAEAAAAAAAEAAAAAA"
+					}
+				],
+				"color": "red",
+				"fill": "none",
+				"dash": "draw",
+				"size": "m",
+				"isComplete": true,
+				"isClosed": false,
+				"isPen": false,
+				"scale": 1,
+				"scaleX": 1,
+				"scaleY": 1
+			},
+			"parentId": "page:page",
+			"index": "aDOguvXV",
+			"typeName": "shape"
+		},
+		{
+>>>>>>> 8a306b6d (adding some new endpoints)
 			"x": 130,
 			"y": 97.8046875,
 			"rotation": 0,
@@ -1081,6 +1194,40 @@
 			"typeName": "shape"
 		},
 		{
+<<<<<<< HEAD
+=======
+			"x": 161.06612732168367,
+			"y": 336.32748563257866,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:fN6rJEf5UHK97WBYxhEMh",
+			"type": "draw",
+			"props": {
+				"segments": [
+					{
+						"type": "free",
+						"path": "AAAAAAAAAAAAAAA/AEAAAAAAAEQAQAAAAEQAQAAAAEQAAAAAAEgAAAAAAEYAAAAAAEYAAAAAAEgAAAAAAEkAAAAAAEgAAAAAAEoAAAAAAEwAAAAAAEwAAAAAgEwAAAAAAE4AAAAAgEwAAAAAAEwAAAAAAEsAAAAAAE0AAAAAAEsAAAAAAEgAAAAAAEoAAAAAAEkAAAAAAEgAAAAAAEkAAAAAAEoAAAAAAEoAAAAAAEoAAAAAAEoAAAAAAEkAAAAAAEYAAAAAAEgAAAAAAEkAAAAAAEgAAAAAAEYAQAAAAEYAAAAAAEkAAAAAAEYAAAAAAEgAAAAAAEgAAAAAAEkAAAAAAEYAAAAAAEgAAAAAAEkAAAAAAEgAAAAAAEoAAAAAAEYAAAAAAEgAAAAAAEkAAAAAAEgAAAAAAEQAAAAAAEYAAAAAAEQAAAAAAEYAAAAAAEQAAAAAAEYAAAAAAEQAAAAAAEYAAAAAAEQAAAAAAEAAAAAAAEQAAAAAAEAAAAAAAEAAAAAAAEAAAAAAAEQAAAAAAEQAwAAAAEAAAAAAAEQAAAAAAEAAAAAAAEQAwAAAAEQAAAAAAEAAAAAAAEAAAAAAAEQAwAAAAEAAAAAAAEAAwAAAAEAAAAAAAEAAAAAA"
+					}
+				],
+				"color": "red",
+				"fill": "none",
+				"dash": "draw",
+				"size": "m",
+				"isComplete": true,
+				"isClosed": false,
+				"isPen": false,
+				"scale": 1,
+				"scaleX": 1,
+				"scaleY": 1
+			},
+			"parentId": "page:page",
+			"index": "aAAWHhmV",
+			"typeName": "shape"
+		},
+		{
+>>>>>>> 8a306b6d (adding some new endpoints)
 			"x": 34,
 			"y": 267.5,
 			"rotation": 0,
@@ -1112,6 +1259,91 @@
 			"typeName": "shape"
 		},
 		{
+<<<<<<< HEAD
+=======
+			"x": 1422.5452136975198,
+			"y": 361.567952254487,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:IXdFaZDkFPsmuGuQWBBaX",
+			"type": "text",
+			"props": {
+				"color": "red",
+				"size": "m",
+				"w": 819.6875,
+				"font": "draw",
+				"textAlign": "start",
+				"autoSize": true,
+				"scale": 1,
+				"richText": {
+					"type": "doc",
+					"attrs": {
+						"dir": "auto"
+					},
+					"content": [
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "❌ Get user profile by ID"
+								},
+								{
+									"type": "hardBreak",
+									"attrs": {
+										"dir": "auto"
+									}
+								},
+								{
+									"type": "text",
+									"text": "❌ Update user profile"
+								},
+								{
+									"type": "hardBreak",
+									"attrs": {
+										"dir": "auto"
+									}
+								},
+								{
+									"type": "text",
+									"text": "❌ Proper error responses"
+								},
+								{
+									"type": "hardBreak",
+									"attrs": {
+										"dir": "auto"
+									}
+								},
+								{
+									"type": "text",
+									"text": "❌ CORS configuration (frontend can't call your API without this!)"
+								},
+								{
+									"type": "hardBreak",
+									"attrs": {
+										"dir": "auto"
+									}
+								},
+								{
+									"type": "text",
+									"text": "❌ Input validation edge cases"
+								}
+							]
+						}
+					]
+				}
+			},
+			"parentId": "page:page",
+			"index": "aEMUmUht",
+			"typeName": "shape"
+		},
+		{
+>>>>>>> 8a306b6d (adding some new endpoints)
 			"x": 130,
 			"y": 179.5,
 			"rotation": 0,
@@ -1143,6 +1375,40 @@
 			"typeName": "shape"
 		},
 		{
+<<<<<<< HEAD
+=======
+			"x": 530.8106170957868,
+			"y": 310.4941461643031,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:hv2iqBkjUkajusYJg-7Hm",
+			"type": "draw",
+			"props": {
+				"segments": [
+					{
+						"type": "free",
+						"path": "AAAAAAAAAAAAAAA/AABNQQAATUFIQQAASEFNQQAATUEAAAAATUEAAAAATUEAAAAASkVNwQAA8UfxxwAATUFIwQAATUFNwQAAAABNwQAASEFNwQAA"
+					}
+				],
+				"color": "red",
+				"fill": "none",
+				"dash": "draw",
+				"size": "m",
+				"isComplete": true,
+				"isClosed": false,
+				"isPen": false,
+				"scale": 1,
+				"scaleX": 1,
+				"scaleY": 1
+			},
+			"parentId": "page:page",
+			"index": "a9Aw5MqV",
+			"typeName": "shape"
+		},
+		{
+>>>>>>> 8a306b6d (adding some new endpoints)
 			"meta": {},
 			"id": "page:page",
 			"name": "Page 1",
@@ -1165,7 +1431,11 @@
 			"brush": null,
 			"scribbles": [],
 			"cursor": {
+<<<<<<< HEAD
 				"type": "cross",
+=======
+				"type": "default",
+>>>>>>> 8a306b6d (adding some new endpoints)
 				"rotation": 0
 			},
 			"isFocusMode": false,
@@ -1175,8 +1445,13 @@
 			"screenBounds": {
 				"x": 0,
 				"y": 0,
+<<<<<<< HEAD
 				"w": 1216,
 				"h": 857
+=======
+				"w": 1062,
+				"h": 476
+>>>>>>> 8a306b6d (adding some new endpoints)
 			},
 			"insets": [
 				false,
@@ -1203,6 +1478,51 @@
 			"id": "instance:instance",
 			"currentPageId": "page:page",
 			"typeName": "instance"
+<<<<<<< HEAD
+=======
+		},
+		{
+			"x": 1323.5452136975198,
+			"y": 595.567952254487,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:KvuKi-O_QutRWrP_RQt3R",
+			"type": "text",
+			"props": {
+				"color": "red",
+				"size": "m",
+				"w": 4262.96875,
+				"font": "draw",
+				"textAlign": "start",
+				"autoSize": true,
+				"scale": 1,
+				"richText": {
+					"type": "doc",
+					"attrs": {
+						"dir": "auto"
+					},
+					"content": [
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "TODAY/TOMORROW (1-2 days): ├─ Build the 5 endpoints above ├─ Setup CORS ├─ Test everything thoroughly └─ Document the API (Postman collection or simple README) THEN MERGE (Day 3): ├─ Give frontend teammate complete API documentation ├─ They can build login/signup/profile pages └─ Less back-and-forth, smoother integration"
+								}
+							]
+						}
+					]
+				}
+			},
+			"parentId": "page:page",
+			"index": "aFJpyGiV",
+			"typeName": "shape"
+>>>>>>> 8a306b6d (adding some new endpoints)
 		}
 	]
 }
