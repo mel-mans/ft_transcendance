@@ -1,15 +1,4 @@
 import { Module } from '@nestjs/common';
-<<<<<<< HEAD
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-
-@Module({
-    imports: [],
-    controllers: [AppController],
-    providers: [AppService],
-})
-export class AppModule { }
-=======
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { AppController } from './app.controller';
@@ -29,4 +18,3 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     providers: [AppService, PrismaService, JwtStrategy],
 })
 export class AppModule {}
->>>>>>> 8a306b6d (adding some new endpoints)

@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
-
-@Controller()
-export class AppController {
-    constructor(private readonly appService: AppService) { }
-=======
 import { Controller, Get, UseGuards, Req, ParseIntPipe, Param, Patch, Body } from '@nestjs/common';
 import { Request } from 'express';
 import { AppService } from './app.service';
@@ -16,15 +8,11 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 @Controller()
 export class AppController {
     constructor(private readonly appService: AppService) {}
->>>>>>> 8a306b6d (adding some new endpoints)
 
     @Get()
     getHello(): string {
         return this.appService.getHello();
     }
-<<<<<<< HEAD
-}
-=======
 
     // Test protected route
     @UseGuards(JwtAuthGuard)
@@ -69,4 +57,3 @@ export class AppController {
         return this.appService.changePassword(userId, changePasswordDto);
     }
 }
->>>>>>> 8a306b6d (adding some new endpoints)

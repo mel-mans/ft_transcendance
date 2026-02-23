@@ -1,13 +1,3 @@
-<<<<<<< HEAD
-import { Injectable } from '@nestjs/common';
-
-@Injectable()
-export class AppService {
-    getHello(): string {
-        return 'Hello from User Management Service!';
-    }
-}
-=======
 import { Injectable , NotFoundException, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -120,4 +110,3 @@ export class AppService {
         };
     }
 }
->>>>>>> 8a306b6d (adding some new endpoints)

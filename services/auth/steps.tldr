@@ -73,8 +73,6 @@
 			"typeName": "shape"
 		},
 		{
-<<<<<<< HEAD
-=======
 			"x": 184.89102619449937,
 			"y": 362.7995954912628,
 			"rotation": 0,
@@ -106,7 +104,6 @@
 			"typeName": "shape"
 		},
 		{
->>>>>>> 8a306b6d (adding some new endpoints)
 			"x": 1010,
 			"y": 337.5,
 			"rotation": 0,
@@ -138,27 +135,22 @@
 			"typeName": "shape"
 		},
 		{
-<<<<<<< HEAD
 			"x": 104,
 			"y": 104.5,
-=======
 			"x": -287.5452136975198,
 			"y": -149.763264754487,
->>>>>>> 8a306b6d (adding some new endpoints)
 			"z": 0.5,
 			"meta": {},
 			"id": "camera:page:page",
 			"typeName": "camera"
 		},
 		{
-<<<<<<< HEAD
 			"editingShapeId": null,
 			"croppingShapeId": null,
 			"selectedShapeIds": [
 				"shape:QvEuWDOF9NEDS4t-6ik6I"
 			],
 			"hoveredShapeId": "shape:QvEuWDOF9NEDS4t-6ik6I",
-=======
 			"x": 203.42150309557826,
 			"y": 402.50776027928896,
 			"rotation": 0,
@@ -196,7 +188,6 @@
 				"shape:KvuKi-O_QutRWrP_RQt3R"
 			],
 			"hoveredShapeId": null,
->>>>>>> 8a306b6d (adding some new endpoints)
 			"erasingShapeIds": [],
 			"hintingShapeIds": [],
 			"focusedGroupId": null,
@@ -206,8 +197,6 @@
 			"typeName": "instance_page_state"
 		},
 		{
-<<<<<<< HEAD
-=======
 			"x": 34,
 			"y": 267.5,
 			"rotation": 0,
@@ -239,7 +228,6 @@
 			"typeName": "shape"
 		},
 		{
->>>>>>> 8a306b6d (adding some new endpoints)
 			"x": 130,
 			"y": 97.8046875,
 			"rotation": 0,
@@ -1194,8 +1182,6 @@
 			"typeName": "shape"
 		},
 		{
-<<<<<<< HEAD
-=======
 			"x": 161.06612732168367,
 			"y": 336.32748563257866,
 			"rotation": 0,
@@ -1227,7 +1213,6 @@
 			"typeName": "shape"
 		},
 		{
->>>>>>> 8a306b6d (adding some new endpoints)
 			"x": 34,
 			"y": 267.5,
 			"rotation": 0,
@@ -1259,8 +1244,6 @@
 			"typeName": "shape"
 		},
 		{
-<<<<<<< HEAD
-=======
 			"x": 1422.5452136975198,
 			"y": 361.567952254487,
 			"rotation": 0,
@@ -1343,7 +1326,6 @@
 			"typeName": "shape"
 		},
 		{
->>>>>>> 8a306b6d (adding some new endpoints)
 			"x": 130,
 			"y": 179.5,
 			"rotation": 0,
@@ -1375,8 +1357,6 @@
 			"typeName": "shape"
 		},
 		{
-<<<<<<< HEAD
-=======
 			"x": 530.8106170957868,
 			"y": 310.4941461643031,
 			"rotation": 0,
@@ -1408,7 +1388,6 @@
 			"typeName": "shape"
 		},
 		{
->>>>>>> 8a306b6d (adding some new endpoints)
 			"meta": {},
 			"id": "page:page",
 			"name": "Page 1",
@@ -1431,11 +1410,8 @@
 			"brush": null,
 			"scribbles": [],
 			"cursor": {
-<<<<<<< HEAD
 				"type": "cross",
-=======
 				"type": "default",
->>>>>>> 8a306b6d (adding some new endpoints)
 				"rotation": 0
 			},
 			"isFocusMode": false,
@@ -1445,13 +1421,10 @@
 			"screenBounds": {
 				"x": 0,
 				"y": 0,
-<<<<<<< HEAD
 				"w": 1216,
 				"h": 857
-=======
 				"w": 1062,
 				"h": 476
->>>>>>> 8a306b6d (adding some new endpoints)
 			},
 			"insets": [
 				false,
@@ -1478,8 +1451,6 @@
 			"id": "instance:instance",
 			"currentPageId": "page:page",
 			"typeName": "instance"
-<<<<<<< HEAD
-=======
 		},
 		{
 			"x": 1323.5452136975198,
@@ -1522,7 +1493,6 @@
 			"parentId": "page:page",
 			"index": "aFJpyGiV",
 			"typeName": "shape"
->>>>>>> 8a306b6d (adding some new endpoints)
 		}
 	]
 }
