@@ -1,21 +1,16 @@
-import { LogIn, Menu, X, User, LogOut } from "lucide-react";
+import { LogIn, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { getCurrentUser, UserProfile } from "@/lib/matching";
+import { useAuth } from '@/lib/auth';
+import { UserProfile } from "@/lib/matching";
 
 const Navbar = () => {
   const location = useLocation();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
-
-  // Check for logged-in user
-  useEffect(() => {
-    const user = getCurrentUser();
-    setCurrentUser(user);
-  }, [location.pathname]);
+  const { user: currentUser } = useAuth();
   
   useEffect(() => {
     const handleScroll = () => {
@@ -101,22 +96,22 @@ const Navbar = () => {
                   className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/40 backdrop-blur-xl hover:bg-white/10 transition-all duration-300"
                 >
                   <Avatar className="w-7 h-7 border border-primary/30">
-                    <AvatarImage src={currentUser.avatar} alt={currentUser.name} className="object-cover" />
+                    <AvatarImage src={currentUser?.avatar} alt={currentUser?.name} className="object-cover" />
                     <AvatarFallback className="text-xs bg-primary/20 text-primary">
-                      {currentUser.name.charAt(0)}
+                      {currentUser?.name?.charAt(0) ?? 'U'}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm font-medium text-foreground">{currentUser.name}</span>
+                  <span className="text-sm font-medium text-foreground">{currentUser?.name}</span>
                 </Link>
               </div>
             ) : (
-              <Link 
-                to="/login" 
-                className="hidden md:flex md:absolute md:right-0 items-center gap-2 px-4 lg:px-5 py-2 lg:py-2.5 rounded-full text-sm font-medium bg-secondary/20 text-secondary hover:bg-secondary hover:text-secondary-foreground transition-all duration-300 backdrop-blur-xl"
-              >
-                <LogIn className="w-4 h-4" />
-                Login
-              </Link>
+                <Link 
+                  to="/login" 
+                  className="hidden md:flex md:absolute md:right-0 items-center gap-2 px-4 lg:px-5 py-2 lg:py-2.5 rounded-full text-sm font-medium bg-secondary/20 text-secondary hover:bg-secondary hover:text-secondary-foreground transition-all duration-300 backdrop-blur-xl"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Login
+                </Link>
             )}
 
             {/* Mobile Menu Button */}
@@ -156,12 +151,12 @@ const Navbar = () => {
                     className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium hover:bg-white/10 transition-all"
                   >
                     <Avatar className="w-7 h-7 border border-primary/30">
-                      <AvatarImage src={currentUser.avatar} alt={currentUser.name} className="object-cover" />
+                      <AvatarImage src={currentUser?.avatar} alt={currentUser?.name} className="object-cover" />
                       <AvatarFallback className="text-xs bg-primary/20 text-primary">
-                        {currentUser.name.charAt(0)}
+                        {currentUser?.name?.charAt(0) ?? 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="text-foreground">{currentUser.name}</span>
+                    <span className="text-foreground">{currentUser?.name}</span>
                   </Link>
                 ) : (
                   <Link 

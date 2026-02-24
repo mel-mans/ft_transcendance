@@ -3,12 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LogIn, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/lib/auth';
 import PageLayout from "@/components/PageLayout";
 
 const Login = () => {
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handle42Login = () => {
     // TODO: Implement 42 OAuth when API is ready
@@ -20,11 +24,30 @@ const Login = () => {
     console.log("Google OAuth login triggered");
   };
 
+  const { login } = useAuth();
+
   const handleEmailLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement email login when API is ready
-    console.log("Email login triggered", { email, password });
+    setError(null);
+    setLoading(true);
+    (async () => {
+      try {
+        await login(email, password);
+        navigate('/profile');
+      } catch (err: any) {
+        // Prefer structured error message if available
+        let msg = err?.message || 'Hmm… that didn’t work.';
+        if (msg.includes('Network error')) {
+          msg = 'Cannot reach backend. Please check your server status or CORS settings.';
+        }
+        setError(msg);
+      } finally {
+        setLoading(false);
+      }
+    })();
   };
+
+  const navigate = useNavigate();
 
   return (
     <PageLayout className="flex items-center justify-center p-4">
@@ -96,7 +119,7 @@ const Login = () => {
                 Enter your email and password
               </p>
               
-              <form onSubmit={handleEmailLogin} className="space-y-4">
+                <form onSubmit={handleEmailLogin} className="space-y-4">
                 <Input
                   type="email"
                   placeholder="Email"
@@ -113,13 +136,19 @@ const Login = () => {
                   className="glass border-white/10 bg-white/5 text-foreground rounded-xl"
                   required
                 />
-                <Button 
-                  type="submit"
-                  className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-6 rounded-xl"
-                >
-                  <LogIn className="w-5 h-5" />
-                  Sign In
-                </Button>
+                <div>
+                  {error && (
+                    <div className="text-sm text-destructive mb-2">{error}</div>
+                  )}
+                  <Button 
+                    type="submit"
+                    disabled={loading}
+                    className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-6 rounded-xl"
+                  >
+                    <LogIn className="w-5 h-5" />
+                    {loading ? 'Signing in...' : 'Sign In'}
+                  </Button>
+                </div>
               </form>
               
               <Button 

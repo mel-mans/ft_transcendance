@@ -6,7 +6,8 @@ import MatchCard from "@/components/MatchCard";
 import ChatPopup from "@/components/ChatPopup";
 import PageLayout from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
-import { UserProfile, getCurrentUser, getMatchedProfiles, saveProfile } from "@/lib/matching";
+import { UserProfile, getMatchedProfiles, saveProfile } from "@/lib/matching";
+import { useAuth } from '@/lib/auth';
 import { Settings, Sparkles } from "lucide-react";
 
 // Sample profiles for demo
@@ -129,20 +130,19 @@ const Matches = () => {
   const [matches, setMatches] = useState<Array<UserProfile & { matchScore: number }>>([]);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatUser, setChatUser] = useState<{ name: string; avatar: string } | null>(null);
-
+  const { user: authUser } = useAuth();
   useEffect(() => {
-    // Load current user and initialize sample profiles
-    const user = getCurrentUser();
-    setCurrentUser(user);
-
     // Save sample profiles if they don't exist
     sampleProfiles.forEach(saveProfile);
+
+    const user = authUser || null;
+    setCurrentUser(user);
 
     if (user) {
       const matched = getMatchedProfiles(user);
       setMatches(matched);
     }
-  }, []);
+  }, [authUser]);
 
   const handleProfileComplete = (profile: UserProfile) => {
     setCurrentUser(profile);

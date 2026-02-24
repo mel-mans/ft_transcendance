@@ -11,7 +11,9 @@ import {
   getCurrentUser,
   getMatchedProfiles,
   saveProfile,
+  setCurrentUser as storeCurrentUser,
 } from "@/lib/matching";
+import api from '@/lib/api';
 import {
   MapPin,
   Calendar,
@@ -116,14 +118,29 @@ const Profile = () => {
   const [myListings, setMyListings] = useState<Array<{ title: string; location: string; price: string; currency: string; availableDate: string; roommatesWanted: number; roommatesFound: number; amenities: string[]; images: string[]; description: string }>>([]);
 
   useEffect(() => {
-    const user = getCurrentUser();
-    setCurrentUser(user);
+    // Load local sample profiles
     sampleProfiles.forEach(saveProfile);
 
-    if (user) {
-      const matched = getMatchedProfiles(user);
-      setMatches(matched);
-    }
+    (async () => {
+      // Try fetching authenticated user from backend
+      try {
+        const apiUser = await api.fetchCurrentUser();
+        if (apiUser) {
+          setCurrentUser(apiUser);
+          storeCurrentUser(apiUser);
+          setMatches(getMatchedProfiles(apiUser));
+          return;
+        }
+      } catch (err) {
+        // fallback to local stored user
+      }
+
+      const user = getCurrentUser();
+      setCurrentUser(user);
+      if (user) {
+        setMatches(getMatchedProfiles(user));
+      }
+    })();
   }, []);
 
   const handleProfileComplete = (profile: UserProfile) => {

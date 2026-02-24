@@ -1,26 +1,23 @@
-# --- STAGE 1: Build ---
+# --- STAGE 1: Build React app ---
 FROM node:20-slim AS builder
 WORKDIR /app
-# Copy package config
+
+# Copy package files and install dependencies
 COPY package*.json ./
-# Install dependencies
 RUN npm install
-# Copy source code
+
+# Copy source code and build
 COPY . .
-# Build the application
 RUN npm run build
 
-# --- STAGE 2: Development/Preview ---
-# --- STAGE 2: Production ---
-FROM node:20-slim
-WORKDIR /app
-RUN apt-get update && apt-get install -y curl
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/public ./public
+# --- STAGE 2: Serve app with nginx ---
+FROM nginx:alpine
+# Copy build output to nginx's html directory
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Expose the port
+# Copy custom nginx config if you have routing needs (optional)
+# COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 3003
-# Start the NestJS server
-CMD ["node", "dist/main"]
+
+CMD ["nginx", "-g", "daemon off;", "-c", "/etc/nginx/nginx.conf"]
