@@ -95,4 +95,73 @@ export class AppService {
             user: userWithoutPassword,
         };
     }
+
+        // ========== OAUTH LOGIN/SIGNUP ==========
+    async oauthLogin(oauthUser: any) {
+        // Check if user exists by OAuth ID (42 or Google)
+        let user;
+
+        if (oauthUser.intra42Id) {
+            // 42 OAuth user
+            user = await this.prisma.user.findUnique({
+                where: { intra42Id: oauthUser.intra42Id },
+            });
+        } else if (oauthUser.googleId) {
+            // Google OAuth user
+            user = await this.prisma.user.findUnique({
+                where: { googleId: oauthUser.googleId },
+            });
+        }
+
+        // If user doesn't exist, create new account
+        if (!user) {
+            // Check if email already exists (from regular signup)
+            if (oauthUser.email) {
+                const existingEmail = await this.prisma.user.findUnique({
+                    where: { email: oauthUser.email },
+                });
+
+                if (existingEmail) {
+                    // Email exists but not linked to OAuth
+                    // You could link them or throw error
+                    throw new ConflictException(
+                        'Email already registered. Please login with email/password.'
+                    );
+                }
+            }
+
+            // Create new user from OAuth data
+            user = await this.prisma.user.create({
+                data: {
+                    email: oauthUser.email,
+                    username: oauthUser.username || `user_${Date.now()}`,
+                    firstName: oauthUser.firstName,
+                    lastName: oauthUser.lastName,
+                    intra42Id: oauthUser.intra42Id || null,
+                    googleId: oauthUser.googleId || null,
+                    password: null, // OAuth users don't have passwords
+                    isVerified: true, // Auto-verify OAuth users
+                },
+            });
+        }
+
+        // Generate JWT token
+        const payload = {
+            sub: user.id,
+            email: user.email,
+            username: user.username,
+        };
+
+        const accessToken = this.jwtService.sign(payload);
+
+        // Remove sensitive data
+        const { password, ...userWithoutPassword } = user;
+
+        return {
+            message: 'Login successful',
+            access_token: accessToken,
+            user: userWithoutPassword,
+        };
+    }
+
 }

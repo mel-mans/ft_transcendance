@@ -5,6 +5,7 @@ infrastructure/logging/logstash/plugins/
 infrastructure/logging/logstash/data/
 
 # Environment files (keep .env.example if you have one)
+.env
 .env.local
 
 # Node modules

@@ -5,6 +5,10 @@ import { AppService } from './app.service';
 import { PrismaService } from './prisma.service';
 import { PassportModule } from '@nestjs/passport';  // ← NEW
 import { JwtStrategy } from './strategies/jwt.strategy';  // ← NEW
+import { Intra42Strategy } from './strategies/intra42.strategy';  // ← NEW
+import { GoogleStrategy } from './strategies/google.strategy';  // ← Add this
+
+
 
 @Module({
     imports: [
@@ -17,6 +21,6 @@ import { JwtStrategy } from './strategies/jwt.strategy';  // ← NEW
         }),
     ],
     controllers: [AppController],
-    providers: [AppService, PrismaService, JwtStrategy],
+    providers: [AppService, PrismaService, JwtStrategy, Intra42Strategy, GoogleStrategy],  // ← NEW: Register strategies as providers
 })
 export class AppModule { }
