@@ -5,6 +5,7 @@ services:
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     build: infrastructure/nginx
     restart: unless-stopped
+    entrypoint: ["nginx", "-g", "daemon off;"]
     ports:
       - "443:443"
     volumes:

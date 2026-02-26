@@ -10,14 +10,17 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# --- STAGE 2: Serve app with nginx ---
-FROM nginx:alpine
-# Copy build output to nginx's html directory
-COPY --from=builder /app/dist /usr/share/nginx/html
+# --- STAGE 2: Serve static app with Node ---
+FROM node:20-bullseye-slim
+WORKDIR /app
 
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/dist /app/dist
+
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends curl \
+	&& rm -rf /var/lib/apt/lists/* \
+	&& npm install -g serve
 
 EXPOSE 3003
 
-CMD ["nginx", "-g", "daemon off;", "-c", "/etc/nginx/nginx.conf"]
+CMD ["serve", "-s", "/app/dist", "-l", "3003"]
