@@ -28,8 +28,6 @@ services:
     build: frontend
     image: front
     restart: unless-stopped
-    ports:
-      - "${FRONT_SERVICE_PORT}:${FRONT_SERVICE_PORT}"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://front:3003" ]
       interval: 2s
@@ -46,9 +44,9 @@ services:
     build: services/auth
     restart: unless-stopped
     image: auth
-    ports:
-      - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
-      - "5555:5555"  # Prisma Studio port
+    # ports:
+    #   - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
+    #   - "5555:5555"  # Prisma Studio port
     volumes:
       - ./services/auth/prisma:/app/prisma
     healthcheck:
@@ -72,8 +70,8 @@ services:
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     image: chat
     restart: unless-stopped
-    ports:
-      - "${CHAT_SERVICE_PORT}:${CHAT_SERVICE_PORT}"
+    # ports:
+    #   - "${CHAT_SERVICE_PORT}:${CHAT_SERVICE_PORT}"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://chat:3001/api/chat" ]
       interval: 2s
@@ -89,8 +87,8 @@ services:
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     image: user
     restart: unless-stopped
-    ports:
-      - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
+    # ports:
+    #   - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://user:3002/api/users" ]
       interval: 2s
@@ -106,8 +104,8 @@ services:
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     image: listings
     restart: unless-stopped
-    ports:
-      - "${LISTINGS_SERVICE_PORT}:${LISTINGS_SERVICE_PORT}"
+    # ports:
+    #   - "${LISTINGS_SERVICE_PORT}:${LISTINGS_SERVICE_PORT}"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://listings:3005/api/listings" ]
       interval: 2s
@@ -123,8 +121,8 @@ services:
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     container_name: postgres_db
     restart: unless-stopped
-    ports:
-      - "${POSTGRES_PORT}:5432"
+    # ports:
+    #   - "${POSTGRES_PORT}:5432"
     volumes:
       - ./infrastructure/postgres/init/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
       # - postgres_data:/var/lib/postgresql/data

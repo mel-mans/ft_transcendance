@@ -26,5 +26,5 @@ USER devops_user
 # - source code (.ts files)
 # - compilers or build tools
 
-EXPOSE 3001
+EXPOSE ${CHAT_SERVICE_PORT}
 CMD ["node", "dist/main.js"]

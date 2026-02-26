@@ -37,5 +37,5 @@ USER devops_user
 # - source code (.ts files)
 # - compilers or build tools
 
-EXPOSE 3004
+EXPOSE ${AUTH_SERVICE_PORT}
 CMD ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && node dist/main.js"]
