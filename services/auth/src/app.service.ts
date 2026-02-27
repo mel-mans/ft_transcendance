@@ -54,41 +54,50 @@ export class AppService {
     }
 
 
-    // ========== NEW: LOGIN METHOD ==========
+    // ========== LOGIN ==========
     async login(loginDto: LoginDto) {
-        const { email, password } = loginDto;
+        const { identifier, password } = loginDto;
 
-        // Step 1: Find user by email
-        const user = await this.prisma.user.findUnique({
-            where: { email },
+        // Find user by email OR username
+        const user = await this.prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email: identifier },
+                    { username: { equals: identifier, mode: 'insensitive' } },
+                ],
+            },
         });
 
-        // Step 2: Check if user exists
         if (!user) {
             throw new UnauthorizedException('Invalid credentials');
         }
 
-        // Step 3: Verify password
+        // Check if password exists (OAuth users don't have passwords)
+        if (!user.password) {
+            throw new UnauthorizedException(
+                'This account uses OAuth login. Please login with 42 or Google.'
+            );
+        }
+
+        // Verify password
         const isPasswordValid = await bcrypt.compare(password, user.password);
-        
+
         if (!isPasswordValid) {
             throw new UnauthorizedException('Invalid credentials');
         }
 
-        // Step 4: Create JWT payload
-        // This is the data that will be encoded in the token
+        // Generate JWT token
         const payload = {
-            sub: user.id,        // 'sub' is JWT standard for user ID
+            sub: user.id,
             email: user.email,
             username: user.username,
         };
 
-        // Step 5: Generate JWT token
         const accessToken = this.jwtService.sign(payload);
 
-        // Step 6: Return token and user info (without password!)
+        // Remove password from response
         const { password: _, ...userWithoutPassword } = user;
-        
+
         return {
             message: 'Login successful',
             access_token: accessToken,

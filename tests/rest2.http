@@ -1,0 +1,62 @@
+### Variables
+@baseUrl = http://localhost:3004/api/auth
+@userUrl = http://localhost:3002/api/users
+@token = your_token_here
+
+### ============================================
+### LOGIN TESTS - EMAIL OR USERNAME
+### ============================================
+
+### Login with Email
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "identifier": "testuser@example.com",
+  "password": "Test1234"
+}
+
+### Login with Username
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "identifier": "testuser",
+  "password": "Test1234"
+}
+
+### Login with Username (Different Case) - Should Work
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "identifier": "TestUser",
+  "password": "Test1234"
+}
+
+### Login - Wrong Password
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "identifier": "testuser",
+  "password": "WrongPassword"
+}
+
+### Login - Non-existent User
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "identifier": "nonexistent",
+  "password": "Test1234"
+}
+
+### Login - OAuth User Without Password (Should Fail)
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "identifier": "younajja",
+  "password": "Test1234"
+}
