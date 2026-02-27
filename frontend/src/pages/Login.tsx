@@ -9,7 +9,7 @@ import PageLayout from "@/components/PageLayout";
 
 const Login = () => {
   const [showEmailForm, setShowEmailForm] = useState(false);
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState(""); // email or username
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,10 +32,10 @@ const Login = () => {
     setLoading(true);
     (async () => {
       try {
-        await login(email, password);
+        // Pass identifier (email or username) to login
+        await login(identifier, password);
         navigate('/profile');
       } catch (err: any) {
-        // Prefer structured error message if available
         let msg = err?.message || 'Hmm… that didn’t work.';
         if (msg.includes('Network error')) {
           msg = 'Cannot reach backend. Please check your server status or CORS settings.';
@@ -71,9 +71,8 @@ const Login = () => {
                 </div>
               </div>
               <p className="text-muted-foreground text-sm mb-6">
-                Sign in with your preferred method
+                login with your preferred method
               </p>
-              
               <div className="space-y-3">
                 <Button 
                   onClick={handle42Login}
@@ -82,7 +81,6 @@ const Login = () => {
                   <LogIn className="w-5 h-5" />
                   Login with 42 Intra
                 </Button>
-                
                 <Button 
                   onClick={handleGoogleLogin}
                   variant="outline"
@@ -96,7 +94,6 @@ const Login = () => {
                   </svg>
                   Login with Google
                 </Button>
-                
                 <Button 
                   onClick={() => setShowEmailForm(true)}
                   variant="outline"
@@ -105,6 +102,18 @@ const Login = () => {
                   <Mail className="w-5 h-5" />
                   Login with Email
                 </Button>
+              </div>
+              {/* Signup prompt always visible in main login portal */}
+              <div className="mt-6">
+                <span className="text-muted-foreground text-sm">
+                  If not registered yet,{' '}
+                  <Link
+                    to="/signup"
+                    className="text-primary hover:underline font-semibold"
+                  >
+                    signup →
+                  </Link>
+                </span>
               </div>
             </>
           ) : (
@@ -115,16 +124,13 @@ const Login = () => {
                   <Mail className="w-7 h-7 text-primary" />
                 </div>
               </div>
-              <p className="text-muted-foreground text-sm mb-6">
-                Enter your email and password
-              </p>
               
                 <form onSubmit={handleEmailLogin} className="space-y-4">
                 <Input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="text"
+                  placeholder="Email or Username"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   className="glass border-white/10 bg-white/5 text-foreground rounded-xl"
                   required
                 />
@@ -138,17 +144,20 @@ const Login = () => {
                 />
                 <div>
                   {error && (
-                    <div className="text-sm text-destructive mb-2">{error}</div>
-                  )}
-                  <Button 
-                    type="submit"
-                    disabled={loading}
-                    className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-6 rounded-xl"
-                  >
-                    <LogIn className="w-5 h-5" />
-                    {loading ? 'Signing in...' : 'Sign In'}
-                  </Button>
-                </div>
+                      <div className="text-sm text-destructive mb-2">{error}</div>
+  )}
+
+              
+
+  <Button
+    type="submit"
+    disabled={loading}
+    className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-6 rounded-xl"
+  >
+    <LogIn className="w-5 h-5" />
+    {loading ? "Login in..." : "Login"}
+  </Button>
+</div>
               </form>
               
               <Button 
