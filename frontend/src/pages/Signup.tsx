@@ -102,7 +102,7 @@ const Signup = () => {
                   className="w-full gap-2 glass border-white/10 text-foreground hover:bg-white/5 font-semibold py-6 rounded-xl"
                 >
                   <Mail className="w-5 h-5" />
-                  Sign up with Email or Username
+                  Sign up with Email
                 </Button>
               </div>
 
@@ -126,7 +126,7 @@ const Signup = () => {
               </div>
 
               <p className="text-muted-foreground text-sm mb-6">
-                Enter your email or username
+                Enter your email
               </p>
 
               <form onSubmit={handleSignup} className="space-y-4">

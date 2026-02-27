@@ -100,7 +100,7 @@ const Login = () => {
                   className="w-full gap-2 glass border-white/10 text-foreground hover:bg-white/5 font-semibold py-6 rounded-xl"
                 >
                   <Mail className="w-5 h-5" />
-                  Login with Email
+                  Login with Email or Username
                 </Button>
               </div>
               {/* Signup prompt always visible in main login portal */}
