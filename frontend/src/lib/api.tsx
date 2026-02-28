@@ -1,4 +1,5 @@
 import axios from "axios";
+import type { AxiosInstance, AxiosRequestConfig } from "axios";
 import API from "./apiEndpoints";
 
 export const AUTH_TOKEN_KEY = "auth_token";
@@ -23,12 +24,43 @@ export function getAuthToken(): string | null {
    AXIOS INSTANCE
 ================================ */
 
+type ApiClient = Omit<
+  AxiosInstance,
+  "get" | "delete" | "head" | "options" | "post" | "put" | "patch"
+> & {
+  get<T = any, D = any>(url: string, config?: AxiosRequestConfig<D>): Promise<T>;
+  delete<T = any, D = any>(
+    url: string,
+    config?: AxiosRequestConfig<D>
+  ): Promise<T>;
+  head<T = any, D = any>(url: string, config?: AxiosRequestConfig<D>): Promise<T>;
+  options<T = any, D = any>(
+    url: string,
+    config?: AxiosRequestConfig<D>
+  ): Promise<T>;
+  post<T = any, D = any>(
+    url: string,
+    data?: D,
+    config?: AxiosRequestConfig<D>
+  ): Promise<T>;
+  put<T = any, D = any>(
+    url: string,
+    data?: D,
+    config?: AxiosRequestConfig<D>
+  ): Promise<T>;
+  patch<T = any, D = any>(
+    url: string,
+    data?: D,
+    config?: AxiosRequestConfig<D>
+  ): Promise<T>;
+};
+
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL, // e.g. https://localhost/api
   headers: {
     "Content-Type": "application/json",
   },
-});
+}) as ApiClient;
 
 /* ================================
    REQUEST INTERCEPTOR

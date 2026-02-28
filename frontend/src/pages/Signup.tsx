@@ -16,7 +16,7 @@ const Signup = () => {
   const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
-  //const { signup } = useAuth(); // make sure this exists
+  const { signup } = useAuth();
 
   const handle42Signup = () => {
     console.log("42 OAuth signup triggered");
@@ -38,7 +38,7 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      //await signup(identifier, password);
+      await signup(identifier, password);
       navigate("/profile");
     } catch (err: any) {
       let msg = err?.message || "Something went wrong.";

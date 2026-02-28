@@ -1,10 +1,12 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { api } from "@/lib/api"; // axios instance
 import { setAuthToken, getAuthToken } from "@/lib/api";
+import API from "@/lib/apiEndpoints";
 
 interface AuthContextType {
   user: any;
   login: (identifier: string, password: string) => Promise<void>;
+  signup: (identifier: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -16,7 +18,7 @@ export function AuthProvider({ children }: any) {
   useEffect(() => {
     const token = getAuthToken();
     if (token) {
-      api.get("/users/me")
+      api.get(API.users.me)
         .then(setUser)
         .catch(() => {
           setAuthToken(null);
@@ -26,13 +28,37 @@ export function AuthProvider({ children }: any) {
   }, []);
 
   const login = async (identifier: string, password: string) => {
-    const res = await api.post("/auth/login", {
+    const res = await api.post(API.auth.login, {
       email: identifier, // if backend only accepts email
       password,
     });
 
-    setAuthToken(res.data.access_token);
-    setUser(res.data.user);
+    setAuthToken(res.access_token);
+    setUser(res.user);
+  };
+
+  const signup = async (identifier: string, password: string) => {
+    const payload = identifier.includes("@")
+      ? { email: identifier, password }
+      : { username: identifier, password };
+
+    const res = await api.post(API.auth.signup, payload);
+
+    if (res?.access_token) {
+      setAuthToken(res.access_token);
+    }
+
+    if (res?.user) {
+      setUser(res.user);
+      return;
+    }
+
+    try {
+      const me = await api.get(API.users.me);
+      setUser(me);
+    } catch {
+      setUser(null);
+    }
   };
 
   const logout = () => {
@@ -41,7 +67,7 @@ export function AuthProvider({ children }: any) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );
