@@ -3,6 +3,7 @@ import { Send, X, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "@/components/ui/sonner";
 
 interface Message {
   id: string;
@@ -45,7 +46,58 @@ const ChatPopup = ({ open, onClose, user }: ChatPopupProps) => {
   ]);
   const [newMessage, setNewMessage] = useState("");
   const [minimized, setMinimized] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const openRef = useRef(open);
+  const minimizedRef = useRef(minimized);
+  const titleRef = useRef<string>(typeof document !== "undefined" ? document.title : "");
+  const replyTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
+
+  useEffect(() => {
+    minimizedRef.current = minimized;
+  }, [minimized]);
+
+  useEffect(() => {
+    if (open && !minimized && !document.hidden && unreadCount > 0) {
+      setUnreadCount(0);
+    }
+  }, [open, minimized, unreadCount]);
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (openRef.current && !minimizedRef.current && !document.hidden) {
+        setUnreadCount(0);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, []);
+
+  useEffect(() => {
+    const baseTitle = titleRef.current;
+    if (unreadCount > 0) {
+      document.title = `(${unreadCount}) New message${unreadCount > 1 ? "s" : ""}`;
+    } else {
+      document.title = baseTitle;
+    }
+
+    return () => {
+      document.title = baseTitle;
+    };
+  }, [unreadCount]);
+
+  useEffect(() => {
+    return () => {
+      if (replyTimerRef.current) {
+        window.clearTimeout(replyTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -65,6 +117,31 @@ const ChatPopup = ({ open, onClose, user }: ChatPopupProps) => {
 
     setMessages((prev) => [...prev, message]);
     setNewMessage("");
+
+    if (replyTimerRef.current) {
+      window.clearTimeout(replyTimerRef.current);
+    }
+
+    replyTimerRef.current = window.setTimeout(() => {
+      const autoReply: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "Nice! Let me know your timeline and budget and we can plan a visit.",
+        sender: "them",
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, autoReply]);
+
+      const shouldNotify =
+        !openRef.current || minimizedRef.current || document.hidden;
+
+      if (shouldNotify) {
+        setUnreadCount((prev) => prev + 1);
+        if (user?.name) {
+          toast(`${user.name} sent you a message`);
+        }
+      }
+    }, 1200);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -90,6 +167,11 @@ const ChatPopup = ({ open, onClose, user }: ChatPopupProps) => {
             className="w-8 h-8 rounded-full object-cover"
           />
           <span className="font-medium text-sm">{user.name}</span>
+          {unreadCount > 0 && (
+            <span className="ml-1 inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-1">
           <Button 

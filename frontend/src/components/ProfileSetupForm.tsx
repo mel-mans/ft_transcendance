@@ -127,12 +127,12 @@ const ProfileSetupForm = ({ onComplete, existingProfile }: ProfileSetupFormProps
           {/* Basic Info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">Full Name</Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
+                placeholder="Your full name"
                 required
                 className="bg-white/5 border-white/10"
               />
