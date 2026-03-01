@@ -15,7 +15,9 @@ export interface UserPreferences {
 
 export interface UserProfile {
   id: string;
+  username?: string;
   name: string;
+  sex?: "male" | "female" | "other";
   age: number;
   location: string;
   bio: string;

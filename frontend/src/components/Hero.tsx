@@ -128,7 +128,7 @@ const Hero = () => {
               <Button 
                 size="lg" 
                 onClick={() => navigate("/signup")}
-                className="gap-2 w-full sm:w-auto bg-primary hover:bg-black text-black hover:text-primary border-black hover:border-black font-semibold px-8 rounded-full"
+                className="gap-2 w-full sm:w-auto bg-primary hover:bg-black text-black hover:text-primary border-black hover:border-black font-semibold px-8 rounded-full glow-primary"
               >
                 Get Started
                 <ArrowRight className="w-4 h-4" />
@@ -136,7 +136,7 @@ const Hero = () => {
               <Button 
                 size="lg" 
                 onClick={() => navigate("/listings")}
-                className="w-full sm:w-auto bg-black hover:bg-secondary text-secondary hover:text-black border-black hover:border-black font-semibold px-8 rounded-full"
+                className="w-full sm:w-auto bg-black hover:bg-secondary text-secondary hover:text-black border-black hover:border-black font-semibold px-8 rounded-full glow-secondary"
               >
                 Browse Listings
               </Button>

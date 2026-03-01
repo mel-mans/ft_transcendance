@@ -33,7 +33,9 @@ interface ProfileSetupFormProps {
 }
 
 const ProfileSetupForm = ({ onComplete, existingProfile }: ProfileSetupFormProps) => {
+  const [username, setUsername] = useState(existingProfile?.username || "");
   const [name, setName] = useState(existingProfile?.name || "");
+  const [sex, setSex] = useState(existingProfile?.sex || "");
   const [age, setAge] = useState(existingProfile?.age?.toString() || "");
   const [location, setLocation] = useState(existingProfile?.location || "");
   const [bio, setBio] = useState(existingProfile?.bio || "");
@@ -73,10 +75,17 @@ const ProfileSetupForm = ({ onComplete, existingProfile }: ProfileSetupFormProps
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const normalizedSex = sex.trim().toLowerCase();
+    const safeSex: "male" | "female" | "other" =
+      normalizedSex === "male" || normalizedSex === "female" || normalizedSex === "other"
+        ? normalizedSex
+        : "other";
     
     const profile: UserProfile = {
       id: existingProfile?.id || generateId(),
+      username: username.trim(),
       name,
+      sex: safeSex,
       age: parseInt(age) || 0,
       location,
       bio,
@@ -125,7 +134,18 @@ const ProfileSetupForm = ({ onComplete, existingProfile }: ProfileSetupFormProps
           </div>
 
           {/* Basic Info */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Your username"
+                required
+                className="bg-white/5 border-white/10"
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <Input
@@ -149,6 +169,24 @@ const ProfileSetupForm = ({ onComplete, existingProfile }: ProfileSetupFormProps
                 className="bg-white/5 border-white/10"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="sex">Sex</Label>
+            <Input
+              id="sex"
+              list="sex-options"
+              value={sex}
+              onChange={(e) => setSex(e.target.value)}
+              placeholder="Search or choose: male, female, other"
+              required
+              className="bg-white/5 border-white/10"
+            />
+            <datalist id="sex-options">
+              <option value="male" />
+              <option value="female" />
+              <option value="other" />
+            </datalist>
           </div>
 
           <div className="space-y-2">

@@ -34,7 +34,9 @@ import CreateListingForm from "@/components/CreateListingForm";
 const sampleProfiles: UserProfile[] = [
   {
     id: "sample1",
+    username: "alex42",
     name: "Alex",
+    sex: "male",
     age: 24,
     location: "Paris 13e",
     bio: "42 student in my second year. Love coding late nights but always respect quiet hours.",
@@ -46,7 +48,9 @@ const sampleProfiles: UserProfile[] = [
   },
   {
     id: "sample2",
+    username: "sofia42",
     name: "Sofia",
+    sex: "female",
     age: 22,
     location: "Paris 14e",
     bio: "New to 42, excited to meet people! Early bird who enjoys cooking.",
@@ -58,7 +62,9 @@ const sampleProfiles: UserProfile[] = [
   },
   {
     id: "sample3",
+    username: "marcus42",
     name: "Marcus",
+    sex: "male",
     age: 26,
     location: "Paris 15e",
     bio: "Third year at 42. Remote work sometimes, love weekend hangouts!",
@@ -70,7 +76,9 @@ const sampleProfiles: UserProfile[] = [
   },
   {
     id: "sample4",
+    username: "luna42",
     name: "Luna",
+    sex: "female",
     age: 23,
     location: "Paris 12e",
     bio: "First year at 42, love music and yoga. Looking for peaceful living.",
@@ -82,7 +90,9 @@ const sampleProfiles: UserProfile[] = [
   },
   {
     id: "sample5",
+    username: "theo42",
     name: "Theo",
+    sex: "male",
     age: 25,
     location: "Paris 11e",
     bio: "Night coder, coffee addict, and I make a mean pasta!",
@@ -167,6 +177,10 @@ const Profile = () => {
     ? Math.round(topMatches.reduce((sum, m) => sum + m.matchScore, 0) / topMatches.length)
     : 0;
 
+  const formattedSex = currentUser?.sex
+    ? `${currentUser.sex.charAt(0).toUpperCase()}${currentUser.sex.slice(1)}`
+    : "Not specified";
+
   // No profile state
   if (!currentUser && !showSetup) {
     return (
@@ -247,8 +261,14 @@ const Profile = () => {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-                      {currentUser.name}, {currentUser.age}
+                      {currentUser.name}
                     </h1>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {currentUser.username ? `@${currentUser.username}` : "@username"}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {formattedSex} : {currentUser.age} years
+                    </div>
                     <div className="flex items-center gap-1.5 text-muted-foreground mt-1">
                       <MapPin className="w-4 h-4 shrink-0" />
                       <span className="text-sm">{currentUser.location}</span>
