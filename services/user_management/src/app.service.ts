@@ -3,6 +3,7 @@ import { PrismaService } from './prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import * as bcrypt from 'bcrypt';
+import { CompleteProfileDto } from './dto/complete-profile.dto';  // ← ADD THIS
 
 @Injectable()
 export class AppService {
@@ -77,7 +78,7 @@ export class AppService {
             user: userWithoutPassword,
         };
     }
-        async changePassword(userId: number, changePasswordDto: ChangePasswordDto) {
+    async changePassword(userId: number, changePasswordDto: ChangePasswordDto) {
         const { currentPassword, newPassword } = changePasswordDto;
 
         // Get user with password
@@ -107,6 +108,69 @@ export class AppService {
 
         return {
             message: 'Password changed successfully',
+        };
+    }
+
+   // ========== COMPLETE PROFILE ==========
+    async completeProfile(userId: number, completeProfileDto: CompleteProfileDto) {
+        const { username, name, age, bio, location, moveInDate, budget, currency, ...preferences } = completeProfileDto;
+
+        // Check if username is taken
+        if (username) {
+            const existingUsername = await this.prisma.user.findFirst({
+                where: {
+                    username,
+                    id: { not: userId },  // Exclude current user
+                },
+            });
+
+            if (existingUsername) {
+                throw new ConflictException('Username already taken');
+            }
+        }
+
+        // Update user basic info
+        const user = await this.prisma.user.update({
+            where: { id: userId },
+            data: {
+                username,
+                name,
+                age,
+                bio,
+            },
+        });
+
+        // Create or update preferences
+        await this.prisma.userPreferences.upsert({
+            where: { userId },
+            create: {
+                userId,
+                location,
+                moveInDate: moveInDate ? new Date(moveInDate) : null,
+                budget,
+                currency,
+                ...preferences,  // All lifestyle booleans
+            },
+            update: {
+                location,
+                moveInDate: moveInDate ? new Date(moveInDate) : null,
+                budget,
+                currency,
+                ...preferences,  // All lifestyle booleans
+            },
+        });
+
+        // Return updated user with preferences
+        const updatedUser = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: { preferences: true },
+        });
+
+        const { password: _, ...userWithoutPassword } = updatedUser;
+
+        return {
+            message: 'Profile completed successfully',
+            user: userWithoutPassword,
         };
     }
 }

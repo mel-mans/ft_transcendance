@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';  // ← ADD
 
 async function bootstrap() {
     const port = process.env.USER_SERVICE_PORT || 3005;
@@ -31,7 +32,22 @@ async function bootstrap() {
     // Set global prefix
     app.setGlobalPrefix('api/users');
     
+
+    // ========== SWAGGER SETUP ==========
+    const config = new DocumentBuilder()
+        .setTitle('User Management API')
+        .setDescription('User profiles and preferences endpoints')
+        .setVersion('1.0')
+        .addBearerAuth()
+        .addTag('users')
+        .build();
+    
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/users/docs', app, document);
+    // ====================================
+
     await app.listen(port);
     console.log(`User Management Service running on port ${port}`);
+    console.log(`📚 Swagger docs: http://localhost:${port}/api/users/docs`);
 }
 bootstrap();

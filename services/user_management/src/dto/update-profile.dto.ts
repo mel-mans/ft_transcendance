@@ -1,6 +1,8 @@
+import { ApiProperty } from '@nestjs/swagger/dist/decorators/api-property.decorator';
 import { IsString, IsOptional, MinLength, MaxLength, Min, Max, IsInt } from 'class-validator';
 
 export class UpdateProfileDto {
+  @ApiProperty({ example: 'johndoe', description: 'Username', required: false })
   @IsOptional()
   @IsString()
   @MinLength(3, { message: 'Username must be at least 3 characters long' })

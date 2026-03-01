@@ -1,9 +1,144 @@
+### ============================================
+### COMPLETE PROFILE TESTS
+### ============================================
+
+### Step 1: Signup (get token)
+POST http://localhost:3004/api/auth/signup
+Content-Type: application/json
+
+{
+  "email": "testcomplete@example.com",
+  "password": "Test1234"
+}
 
 
+### Step 2: Login (copy token)
 POST http://localhost:3004/api/auth/login
 Content-Type: application/json
 
 {
-    "identifier": "simo@gmail.com",
-    "password": "Simo1234"
+  "identifier": "testcomplete@example.com",
+  "password": "Test1234"
+}
+
+### Step 3: Complete Profile (paste token below)
+POST http://localhost:3002/api/users/complete-profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsImVtYWlsIjoidGVzdGNvbXBsZXRlQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJ1c2VyXzE3NzIzNDY5NDc3NDYiLCJpYXQiOjE3NzIzNDY5NTgsImV4cCI6MTc3Mjk1MTc1OH0.l9GV3GE2pu8q15eNcDrMTdjwa7u0-xWyXPnOUq0rPVo
+Content-Type: application/json
+
+{
+  "username": "johndoe",
+  "name": "John Doe",
+  "age": 24,
+  "location": "Casablanca",
+  "moveInDate": "2026-04-01",
+  "budget": 5000,
+  "currency": "MAD",
+  "bio": "42 student looking for roommate",
+  "smoker": false,
+  "quietHours": true,
+  "earlyBird": false,
+  "nightOwl": true,
+  "petFriendly": true,
+  "cooks": true,
+  "gamer": true,
+  "social": false,
+  "studious": true,
+  "clean": true
+}
+
+### Step 4: Get Profile (verify it worked)
+GET {{userUrl}}/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+### ============================================
+### COMPLETE PROFILE - ERROR CASES
+### ============================================
+
+### Missing required fields (should fail)
+POST {{userUrl}}/complete-profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "name": "Test User"
+}
+
+### Username already taken (should fail with 409)
+POST {{userUrl}}/complete-profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "username": "johndoe",
+  "name": "Another User",
+  "age": 25,
+  "location": "Casablanca",
+  "moveInDate": "2026-05-01",
+  "budget": 6000,
+  "currency": "EUR",
+  "bio": "Another bio",
+  "smoker": false,
+  "quietHours": true,
+  "earlyBird": false,
+  "nightOwl": true,
+  "petFriendly": false,
+  "cooks": false,
+  "gamer": false,
+  "social": true,
+  "studious": false,
+  "clean": true
+}
+
+### Invalid age (too young)
+POST {{userUrl}}/complete-profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "username": "younguser",
+  "name": "Young User",
+  "age": 15,
+  "location": "Casablanca",
+  "moveInDate": "2026-04-01",
+  "budget": 5000,
+  "currency": "MAD",
+  "bio": "Too young",
+  "smoker": false,
+  "quietHours": true,
+  "earlyBird": false,
+  "nightOwl": true,
+  "petFriendly": false,
+  "cooks": true,
+  "gamer": true,
+  "social": false,
+  "studious": true,
+  "clean": true
+}
+
+### Invalid currency
+POST {{userUrl}}/complete-profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "username": "badcurrency",
+  "name": "Bad Currency User",
+  "age": 24,
+  "location": "Casablanca",
+  "moveInDate": "2026-04-01",
+  "budget": 5000,
+  "currency": "INVALID",
+  "bio": "Invalid currency",
+  "smoker": false,
+  "quietHours": true,
+  "earlyBird": false,
+  "nightOwl": true,
+  "petFriendly": false,
+  "cooks": true,
+  "gamer": true,
+  "social": false,
+  "studious": true,
+  "clean": true
 }

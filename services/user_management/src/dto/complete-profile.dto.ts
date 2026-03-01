@@ -1,81 +1,106 @@
-import { IsString, IsInt, IsOptional, IsBoolean, IsDateString, IsIn, Min, Max, MinLength } from 'class-validator';
+import { IsString, IsInt, IsBoolean, IsDateString, IsIn, Min, Max, MinLength, IsNotEmpty } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CompleteProfileDto {
-    // Basic Info
+    // ========== BASIC INFO (REQUIRED) ==========
+    
+    @ApiProperty({ example: 'johndoe', description: 'Username (min 3 chars)' })
     @IsString()
+    @IsNotEmpty()
     @MinLength(3)
-    username: string;  // User chooses their username
+    username: string;
 
+    @ApiProperty({ example: 'John Doe', description: 'Full name' })
     @IsString()
-    @IsOptional()
-    name?: string;
+    @IsNotEmpty()
+    name: string;
 
+    @ApiProperty({ example: 24, description: 'Age (18-100)' })
     @IsInt()
+    @IsNotEmpty()
     @Min(18)
     @Max(100)
-    @IsOptional()
-    age?: number;
+    age: number;
 
+    @ApiProperty({ example: 'Casablanca', description: 'Preferred location' })
     @IsString()
-    @IsOptional()
-    bio?: string;
+    @IsNotEmpty()
+    location: string;
 
-    // Preferences
-    @IsString()
-    @IsOptional()
-    location?: string;
-
+    @ApiProperty({ example: '2026-04-01', description: 'Move-in date (ISO format)' })
     @IsDateString()
-    @IsOptional()
-    moveInDate?: string;
+    @IsNotEmpty()
+    moveInDate: string;
 
+    @ApiProperty({ example: 5000, description: 'Monthly budget' })
     @IsInt()
-    @IsOptional()
-    budget?: number;
+    @IsNotEmpty()
+    budget: number;
 
+    @ApiProperty({ 
+        example: 'MAD', 
+        description: 'Currency code',
+        enum: ['EUR', 'USD', 'MAD', 'GBP', 'CHF', 'JPY', 'CAD', 'AUD']
+    })
     @IsString()
-    @IsOptional()
+    @IsNotEmpty()
     @IsIn(['EUR', 'USD', 'MAD', 'GBP', 'CHF', 'JPY', 'CAD', 'AUD'])
-    currency?: string;
+    currency: string;
 
-    // Lifestyle
-    @IsBoolean()
-    @IsOptional()
-    smoker?: boolean;
+    @ApiProperty({ example: '42 student looking for roommate', description: 'About you' })
+    @IsString()
+    @IsNotEmpty()
+    bio: string;
 
-    @IsBoolean()
-    @IsOptional()
-    quietHours?: boolean;
+    // ========== LIFESTYLE PREFERENCES (REQUIRED) ==========
 
+    @ApiProperty({ example: false, description: 'Smoker' })
     @IsBoolean()
-    @IsOptional()
-    earlyBird?: boolean;
+    @IsNotEmpty()
+    smoker: boolean;
 
+    @ApiProperty({ example: true, description: 'Prefers quiet hours' })
     @IsBoolean()
-    @IsOptional()
-    nightOwl?: boolean;
+    @IsNotEmpty()
+    quietHours: boolean;
 
+    @ApiProperty({ example: false, description: 'Early bird' })
     @IsBoolean()
-    @IsOptional()
-    petFriendly?: boolean;
+    @IsNotEmpty()
+    earlyBird: boolean;
 
+    @ApiProperty({ example: true, description: 'Night owl' })
     @IsBoolean()
-    @IsOptional()
-    cooks?: boolean;
+    @IsNotEmpty()
+    nightOwl: boolean;
 
+    @ApiProperty({ example: true, description: 'Pet friendly' })
     @IsBoolean()
-    @IsOptional()
-    gamer?: boolean;
+    @IsNotEmpty()
+    petFriendly: boolean;
 
+    @ApiProperty({ example: true, description: 'Cooks regularly' })
     @IsBoolean()
-    @IsOptional()
-    social?: boolean;
+    @IsNotEmpty()
+    cooks: boolean;
 
+    @ApiProperty({ example: true, description: 'Gamer' })
     @IsBoolean()
-    @IsOptional()
-    studious?: boolean;
+    @IsNotEmpty()
+    gamer: boolean;
 
+    @ApiProperty({ example: false, description: 'Social/outgoing' })
     @IsBoolean()
-    @IsOptional()
-    clean?: boolean;
+    @IsNotEmpty()
+    social: boolean;
+
+    @ApiProperty({ example: true, description: 'Studious' })
+    @IsBoolean()
+    @IsNotEmpty()
+    studious: boolean;
+
+    @ApiProperty({ example: true, description: 'Clean/tidy' })
+    @IsBoolean()
+    @IsNotEmpty()
+    clean: boolean;
 }
