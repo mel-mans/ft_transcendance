@@ -29,14 +29,9 @@ export class AppService {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create user with minimal info
-        // Username will be set during profile completion
-        const tempUsername = `user_${Date.now()}`; // Temporary, will be changed in profile
-
         const user = await this.prisma.user.create({
             data: {
                 email,
-                username: tempUsername,  // Temporary unique username
                 password: hashedPassword,
                 // name, age, bio will be filled in profile completion
             },
@@ -140,7 +135,6 @@ export class AppService {
             user = await this.prisma.user.create({
                 data: {
                     email: oauthUser.email,
-                    username: oauthUser.username || `user_${Date.now()}`,
                     intra42Id: oauthUser.intra42Id || null,
                     googleId: oauthUser.googleId || null,
                     password: null, // OAuth users don't have passwords

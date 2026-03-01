@@ -1,40 +1,53 @@
 ### ============================================
+### VARIABLES
+### ============================================
+
+@baseUrl = http://localhost:3004/api/auth
+@userUrl = http://localhost:3002/api/users
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjYsImVtYWlsIjoicHJvZmlsZXRlc3RAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6InRlc3R1c2VyMTIzIiwiaWF0IjoxNzcyNDA0Mjg1LCJleHAiOjE3NzMwMDkwODV9.ijm8YA1q_OupAN-aTb5bpngOveKTvig32un-Q264Hao
+
+### ============================================
+### SETUP: CREATE TEST USER
+### ============================================
+
+### 1. Signup
+POST {{baseUrl}}/signup
+Content-Type: application/json
+
+{
+  "email": "profiletest@example.com",
+  "password": "Test1234"
+}
+
+### 2. Login (copy the access_token)
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "identifier": "profiletest@example.com",
+  "password": "Test1234"
+}
+
+### ============================================
 ### COMPLETE PROFILE TESTS
 ### ============================================
 
-### Step 1: Signup (get token)
-POST http://localhost:3004/api/auth/signup
+
+### 3. Complete Profile - SUCCESS (all fields)
+POST {{userUrl}}/complete-profile
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "email": "testcomplete@example.com",
-  "password": "Test1234"
-}
-
-
-### Step 2: Login (copy token)
-POST http://localhost:3004/api/auth/login
-Content-Type: application/json
-
-{
-  "identifier": "testcomplete@example.com",
-  "password": "Test1234"
-}
-
-### Step 3: Complete Profile (paste token below)
-POST http://localhost:3002/api/users/complete-profile
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsImVtYWlsIjoidGVzdGNvbXBsZXRlQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJ1c2VyXzE3NzIzNDY5NDc3NDYiLCJpYXQiOjE3NzIzNDY5NTgsImV4cCI6MTc3Mjk1MTc1OH0.l9GV3GE2pu8q15eNcDrMTdjwa7u0-xWyXPnOUq0rPVo
-Content-Type: application/json
-
-{
-  "username": "johndoe",
+  "username": "testuser123",
   "name": "John Doe",
   "age": 24,
+  "sex": "male",
+  "bio": "42 student looking for roommate",
   "location": "Casablanca",
   "moveInDate": "2026-04-01",
   "budget": 5000,
   "currency": "MAD",
-  "bio": "42 student looking for roommate",
   "smoker": false,
   "quietHours": true,
   "earlyBird": false,
@@ -47,38 +60,94 @@ Content-Type: application/json
   "clean": true
 }
 
-### Step 4: Get Profile (verify it worked)
+### 4. Get Profile (verify complete-profile worked)
 GET {{userUrl}}/me
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Authorization: Bearer {{token}}
 
 ### ============================================
-### COMPLETE PROFILE - ERROR CASES
+### COMPLETE PROFILE - ERROR TESTS
 ### ============================================
 
-### Missing required fields (should fail)
+### 5. Complete Profile - MISSING FIELDS (should fail 400)
 POST {{userUrl}}/complete-profile
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "username": "testuser",
+  "username": "incomplete",
   "name": "Test User"
 }
 
-### Username already taken (should fail with 409)
+### 6. Complete Profile - INVALID AGE (should fail 400)
 POST {{userUrl}}/complete-profile
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "username": "johndoe",
+  "username": "younguser",
+  "name": "Too Young",
+  "age": 15,
+  "sex": "male",
+  "bio": "Too young",
+  "location": "Casablanca",
+  "moveInDate": "2026-04-01",
+  "budget": 5000,
+  "currency": "MAD",
+  "smoker": false,
+  "quietHours": true,
+  "earlyBird": false,
+  "nightOwl": true,
+  "petFriendly": false,
+  "cooks": true,
+  "gamer": true,
+  "social": false,
+  "studious": true,
+  "clean": true
+}
+
+### 7. Complete Profile - INVALID CURRENCY (should fail 400)
+POST {{userUrl}}/complete-profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "badcurrency",
+  "name": "Bad Currency",
+  "age": 24,
+  "sex": "male",
+  "bio": "Invalid currency",
+  "location": "Casablanca",
+  "moveInDate": "2026-04-01",
+  "budget": 5000,
+  "currency": "INVALID",
+  "smoker": false,
+  "quietHours": true,
+  "earlyBird": false,
+  "nightOwl": true,
+  "petFriendly": false,
+  "cooks": true,
+  "gamer": true,
+  "social": false,
+  "studious": true,
+  "clean": true
+}
+
+### 8. Complete Profile - DUPLICATE USERNAME (should fail 409)
+# First create another user, then try to use their username
+POST {{userUrl}}/complete-profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "testuser123",
   "name": "Another User",
   "age": 25,
-  "location": "Casablanca",
+  "sex": "female",
+  "bio": "Trying duplicate username",
+  "location": "Rabat",
   "moveInDate": "2026-05-01",
   "budget": 6000,
   "currency": "EUR",
-  "bio": "Another bio",
   "smoker": false,
   "quietHours": true,
   "earlyBird": false,
@@ -91,54 +160,232 @@ Content-Type: application/json
   "clean": true
 }
 
-### Invalid age (too young)
-POST {{userUrl}}/complete-profile
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+### ============================================
+### UPDATE PROFILE TESTS
+### ============================================
+
+### 9. Update Profile - JUST BIO (should succeed)
+PATCH {{userUrl}}/profile
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "username": "younguser",
-  "name": "Young User",
-  "age": 15,
-  "location": "Casablanca",
-  "moveInDate": "2026-04-01",
-  "budget": 5000,
+  "bio": "Updated my bio!"
+}
+
+### 10. Get Profile (verify bio update)
+GET {{userUrl}}/me
+Authorization: Bearer {{token}}
+
+### 11. Update Profile - MULTIPLE BASIC FIELDS
+PATCH {{userUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "John Updated Doe",
+  "age": 25,
+  "bio": "Updated again with new age"
+}
+
+### 12. Update Profile - JUST USERNAME
+PATCH {{userUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "newusername123"
+}
+
+### 13. Update Profile - LOCATION & BUDGET
+PATCH {{userUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "location": "Rabat",
+  "budget": 6000,
+  "currency": "EUR"
+}
+
+### 14. Update Profile - LIFESTYLE PREFERENCES
+PATCH {{userUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "smoker": false,
+  "nightOwl": true,
+  "gamer": false,
+  "clean": true
+}
+
+### 15. Update Profile - EVERYTHING AT ONCE
+PATCH {{userUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "fullyupdated",
+  "name": "Fully Updated Name",
+  "age": 26,
+  "sex": "other",
+  "bio": "Completely updated profile",
+  "location": "Tangier",
+  "moveInDate": "2026-06-01",
+  "budget": 7000,
+  "currency": "USD",
+  "smoker": false,
+  "quietHours": false,
+  "earlyBird": true,
+  "nightOwl": false,
+  "petFriendly": false,
+  "cooks": false,
+  "gamer": true,
+  "social": true,
+  "studious": false,
+  "clean": true
+}
+
+### 16. Get Profile (verify all updates)
+GET {{userUrl}}/me
+Authorization: Bearer {{token}}
+
+### ============================================
+### UPDATE PROFILE - ERROR TESTS
+### ============================================
+
+### 17. Update Profile - DUPLICATE USERNAME (should fail 409)
+# Try to use an existing username
+PATCH {{userUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "testuser123"
+}
+
+### 18. Update Profile - INVALID AGE (should fail 400)
+PATCH {{userUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "age": 150
+}
+
+### 19. Update Profile - INVALID SEX (should fail 400)
+PATCH {{userUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "sex": "invalid"
+}
+
+### 20. Update Profile - INVALID CURRENCY (should fail 400)
+PATCH {{userUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "currency": "FAKE"
+}
+
+### 21. Update Profile - NO TOKEN (should fail 401)
+PATCH {{userUrl}}/profile
+Content-Type: application/json
+
+{
+  "bio": "Trying without token"
+}
+
+### 22. Update Profile - INVALID TOKEN (should fail 401)
+PATCH {{userUrl}}/profile
+Authorization: Bearer invalid_token_here
+Content-Type: application/json
+
+{
+  "bio": "Trying with invalid token"
+}
+
+### ============================================
+### COMPLETE WORKFLOW TEST
+### ============================================
+
+### 23. WORKFLOW: Create → Complete → Update → Verify
+
+# Step 1: Create new user
+POST {{baseUrl}}/signup
+Content-Type: application/json
+
+{
+  "email": "workflow@example.com",
+  "password": "Test1234"
+}
+
+###
+# Step 2: Login
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "identifier": "workflow@example.com",
+  "password": "Test1234"
+}
+
+###
+# Step 3: Complete profile (paste token from step 2)
+POST {{userUrl}}/complete-profile
+Authorization: Bearer PASTE_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "username": "workflow_user",
+  "name": "Workflow Test",
+  "age": 22,
+  "sex": "female",
+  "bio": "Testing complete workflow",
+  "location": "Marrakech",
+  "moveInDate": "2026-07-01",
+  "budget": 4500,
   "currency": "MAD",
-  "bio": "Too young",
   "smoker": false,
   "quietHours": true,
-  "earlyBird": false,
-  "nightOwl": true,
-  "petFriendly": false,
+  "earlyBird": true,
+  "nightOwl": false,
+  "petFriendly": true,
   "cooks": true,
-  "gamer": true,
-  "social": false,
+  "gamer": false,
+  "social": true,
   "studious": true,
   "clean": true
 }
 
-### Invalid currency
-POST {{userUrl}}/complete-profile
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+###
+# Step 4: Update some fields
+PATCH {{userUrl}}/profile
+Authorization: Bearer PASTE_TOKEN_HERE
 Content-Type: application/json
 
 {
-  "username": "badcurrency",
-  "name": "Bad Currency User",
-  "age": 24,
-  "location": "Casablanca",
-  "moveInDate": "2026-04-01",
-  "budget": 5000,
-  "currency": "INVALID",
-  "bio": "Invalid currency",
-  "smoker": false,
-  "quietHours": true,
-  "earlyBird": false,
-  "nightOwl": true,
-  "petFriendly": false,
-  "cooks": true,
-  "gamer": true,
-  "social": false,
-  "studious": true,
-  "clean": true
+  "bio": "Updated workflow bio",
+  "budget": 5500
 }
+
+###
+# Step 5: Verify final state
+GET {{userUrl}}/me
+Authorization: Bearer PASTE_TOKEN_HERE
+
+### ============================================
+### GET USER BY ID TEST
+### ============================================
+
+### 24. Get User by ID
+GET {{userUrl}}/1
+Authorization: Bearer {{token}}
+
+### 25. Get Non-Existent User (should fail 404)
+GET {{userUrl}}/99999
+Authorization: Bearer {{token}}

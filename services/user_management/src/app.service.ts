@@ -52,32 +52,77 @@ export class AppService {
 
         return user;
     }
+    // ========== UPDATE PROFILE ==========
     async updateProfile(userId: number, updateProfileDto: UpdateProfileDto) {
-        // If username is being updated, check if it's already taken
-        if (updateProfileDto.username) {
+        const { username, name, age, sex, bio, location, moveInDate, budget, currency, ...preferences } = updateProfileDto;
+
+        // Check username availability if being updated
+        if (username) {
             const existingUser = await this.prisma.user.findUnique({
-                where: { username: updateProfileDto.username },
+                where: { username },
             });
 
-            // If username exists and it's not the current user's username
             if (existingUser && existingUser.id !== userId) {
                 throw new ConflictException('Username already taken');
             }
         }
 
-        // Update the user
-        const updatedUser = await this.prisma.user.update({
-            where: { id: userId },
-            data: updateProfileDto,
+        // Build user update data (only provided fields)
+        const userUpdateData: any = {};
+        if (username !== undefined) userUpdateData.username = username;
+        if (name !== undefined) userUpdateData.name = name;
+        if (age !== undefined) userUpdateData.age = age;
+        if (sex !== undefined) userUpdateData.sex = sex;
+        if (bio !== undefined) userUpdateData.bio = bio;
+
+        // Update user if there are fields to update
+        if (Object.keys(userUpdateData).length > 0) {
+            await this.prisma.user.update({
+                where: { id: userId },
+                data: userUpdateData,
+            });
+        }
+
+        // Build preferences update data (only provided fields)
+        const preferencesUpdateData: any = {};
+        if (location !== undefined) preferencesUpdateData.location = location;
+        if (moveInDate !== undefined) preferencesUpdateData.moveInDate = new Date(moveInDate);
+        if (budget !== undefined) preferencesUpdateData.budget = budget;
+        if (currency !== undefined) preferencesUpdateData.currency = currency;
+
+        // Add lifestyle preferences that were provided
+        Object.keys(preferences).forEach(key => {
+            if (preferences[key] !== undefined) {
+                preferencesUpdateData[key] = preferences[key];
+            }
         });
 
-        // Remove password from response
-        const { password, ...userWithoutPassword } = updatedUser;
+        // Update preferences if there are fields to update
+        if (Object.keys(preferencesUpdateData).length > 0) {
+            await this.prisma.userPreferences.upsert({
+                where: { userId },
+                create: {
+                    userId,
+                    ...preferencesUpdateData,
+                },
+                update: preferencesUpdateData,
+            });
+        }
+
+        // Return updated user with preferences
+        const updatedUser = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: { preferences: true },
+        });
+
+        const { password: _, ...userWithoutPassword } = updatedUser;
+
         return {
             message: 'Profile updated successfully',
             user: userWithoutPassword,
         };
     }
+    // ========== CHANGE PASSWORD ==========
     async changePassword(userId: number, changePasswordDto: ChangePasswordDto) {
         const { currentPassword, newPassword } = changePasswordDto;
 
@@ -111,16 +156,37 @@ export class AppService {
         };
     }
 
-   // ========== COMPLETE PROFILE ==========
+    // ========== COMPLETE PROFILE ==========
     async completeProfile(userId: number, completeProfileDto: CompleteProfileDto) {
-        const { username, name, age, bio, location, moveInDate, budget, currency, ...preferences } = completeProfileDto;
+        const { 
+            username, 
+            name, 
+            age, 
+            sex, 
+            bio, 
+            location, 
+            moveInDate, 
+            budget, 
+            currency,
+            // Explicitly destructure lifestyle preferences
+            smoker,
+            quietHours,
+            earlyBird,
+            nightOwl,
+            petFriendly,
+            cooks,
+            gamer,
+            social,
+            studious,
+            clean
+        } = completeProfileDto;
 
         // Check if username is taken
         if (username) {
             const existingUsername = await this.prisma.user.findFirst({
                 where: {
                     username,
-                    id: { not: userId },  // Exclude current user
+                    id: { not: userId },
                 },
             });
 
@@ -130,12 +196,13 @@ export class AppService {
         }
 
         // Update user basic info
-        const user = await this.prisma.user.update({
+        await this.prisma.user.update({
             where: { id: userId },
             data: {
                 username,
                 name,
                 age,
+                sex,
                 bio,
             },
         });
@@ -149,14 +216,32 @@ export class AppService {
                 moveInDate: moveInDate ? new Date(moveInDate) : null,
                 budget,
                 currency,
-                ...preferences,  // All lifestyle booleans
+                smoker,
+                quietHours,
+                earlyBird,
+                nightOwl,
+                petFriendly,
+                cooks,
+                gamer,
+                social,
+                studious,
+                clean,
             },
             update: {
                 location,
                 moveInDate: moveInDate ? new Date(moveInDate) : null,
                 budget,
                 currency,
-                ...preferences,  // All lifestyle booleans
+                smoker,
+                quietHours,
+                earlyBird,
+                nightOwl,
+                petFriendly,
+                cooks,
+                gamer,
+                social,
+                studious,
+                clean,
             },
         });
 

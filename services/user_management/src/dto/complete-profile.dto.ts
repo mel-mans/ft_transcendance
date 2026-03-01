@@ -1,4 +1,4 @@
-import { IsString, IsInt, IsBoolean, IsDateString, IsIn, Min, Max, MinLength, IsNotEmpty } from 'class-validator';
+import { IsString, IsInt, IsBoolean, IsDateString, IsIn, Min, Max, MinLength, IsNotEmpty, Matches } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CompleteProfileDto {
@@ -10,9 +10,12 @@ export class CompleteProfileDto {
     @MinLength(3)
     username: string;
 
-    @ApiProperty({ example: 'John Doe', description: 'Full name' })
+    @ApiProperty({ example: 'John Doe', description: 'Full name (first and last name)' })
     @IsString()
     @IsNotEmpty()
+    @Matches(/^[a-zA-ZÀ-ÿ\s]+\s+[a-zA-ZÀ-ÿ\s]+$/, {
+        message: 'Name must be a full name (first and last name)',
+    })
     name: string;
 
     @ApiProperty({ example: 24, description: 'Age (18-100)' })
@@ -21,6 +24,18 @@ export class CompleteProfileDto {
     @Min(18)
     @Max(100)
     age: number;
+
+    // ========== ADD THIS ==========
+    @ApiProperty({ 
+        example: 'male', 
+        description: 'Sex/Gender',
+        enum: ['male', 'female', 'other']
+    })
+    @IsString()
+    @IsNotEmpty()
+    @IsIn(['male', 'female', 'other'])
+    sex: string;
+    // ==============================
 
     @ApiProperty({ example: 'Casablanca', description: 'Preferred location' })
     @IsString()
