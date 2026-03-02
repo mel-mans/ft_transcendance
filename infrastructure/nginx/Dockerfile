@@ -1,4 +1,4 @@
-FROM nginx:trixie-perl
+FROM owasp/modsecurity-crs:nginx
 
 COPY conf.d/default.conf /etc/nginx/conf.d/default.conf
 

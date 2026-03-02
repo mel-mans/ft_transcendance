@@ -1,19 +1,20 @@
 services:
   nginx:
     container_name: nginx
-    image: nginx
+    image: owasp/modsecurity:nginx
     platform: ${DOCKER_PLATFORM:-linux/amd64}
-    build: infrastructure/nginx
     restart: unless-stopped
-    entrypoint: ["nginx", "-g", "daemon off;"]
     ports:
       - "80:80"
       - "443:443"
-      - "80:80"
     volumes:
+      # Nginx config
+      - ./infrastructure/nginx/conf.d/default.conf:/etc/nginx/templates/conf.d/default.conf.template:ro
+      # SSL certificates
       - ./infrastructure/nginx/certs:/etc/nginx/certs:ro
+
     healthcheck:
-      test: [ "CMD", "curl", "-k", "https://nginx:443" ]
+      test: ["CMD", "curl", "-k", "https://nginx:443"]
       interval: 2s
       timeout: 5s
       retries: 2
@@ -31,7 +32,7 @@ services:
     image: front
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://front:3003" ]
+      test: ["CMD", "curl", "-f", "http://front:3003"]
       interval: 2s
       timeout: 5s
       retries: 2
@@ -50,11 +51,11 @@ services:
     image: auth
     ports:
       - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
-      - "5555:5555"  # Prisma Studio port
+      - "5555:5555" # Prisma Studio port
     volumes:
       - ./prisma:/app/prisma
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://auth:3004/api/auth" ]
+      test: ["CMD", "curl", "-f", "http://auth:3004/api/auth"]
       interval: 2s
       timeout: 5s
       retries: 2
@@ -79,7 +80,7 @@ services:
     ports:
       - "${CHAT_SERVICE_PORT}:${CHAT_SERVICE_PORT}"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://chat:3001/api/chat" ]
+      test: ["CMD", "curl", "-f", "http://chat:3001/api/chat"]
       interval: 2s
       timeout: 5s
       retries: 2
@@ -100,7 +101,7 @@ services:
     ports:
       - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://user:3002/api/users" ]
+      test: ["CMD", "curl", "-f", "http://user:3002/api/users"]
       interval: 2s
       timeout: 5s
       retries: 2
@@ -121,7 +122,7 @@ services:
     ports:
       - "${LISTINGS_SERVICE_PORT}:${LISTINGS_SERVICE_PORT}"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://listings:3005/api/listings" ]
+      test: ["CMD", "curl", "-f", "http://listings:3005/api/listings"]
       interval: 2s
       timeout: 5s
       retries: 2
@@ -143,7 +144,7 @@ services:
       # - postgres_data:/var/lib/postgresql/data
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "${DB_USER}" ]
+      test: ["CMD", "pg_isready", "-U", "${DB_USER}"]
       interval: 2s
       timeout: 5s
       retries: 2
