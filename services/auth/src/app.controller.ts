@@ -117,16 +117,17 @@ export class AppController {
     })
     @ApiResponse({ status: 302, description: 'Redirects to frontend with JWT token' })
     async callback42(@Req() req: any, @Res() res: any) {
-        // After successful 42 authentication, user is redirected here
-        // req.user contains the validated user data from strategy
-        
-        const result = await this.appService.oauthLogin(req.user);
-        
-        // Redirect to frontend with token
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3003';
-        const redirectUrl = `${frontendUrl}/auth/callback?token=${result.access_token}`;
-        
-        return res.redirect(redirectUrl);
+        try {
+            const result = await this.appService.oauthLogin(req.user);
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3003';
+            const redirectUrl = `${frontendUrl}/auth/callback?token=${result.access_token}`;
+            return res.redirect(redirectUrl);
+        } catch (error) {
+            console.error('42 OAuth Error:', error);
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3003';
+            const errorUrl = `${frontendUrl}/auth/error?message=${encodeURIComponent(error.message)}`;
+            return res.redirect(errorUrl);
+        }
     }
    // ========== GOOGLE OAUTH ENDPOINTS ========== (ADD THESE)
     
@@ -149,12 +150,17 @@ export class AppController {
     })
     @ApiResponse({ status: 302, description: 'Redirects to frontend with JWT token' })
     async callbackGoogle(@Req() req: any, @Res() res: any) {
-        const result = await this.appService.oauthLogin(req.user);
-        
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3003';
-        const redirectUrl = `${frontendUrl}/auth/callback?token=${result.access_token}`;
-        
-        return res.redirect(redirectUrl);
+        try {
+            const result = await this.appService.oauthLogin(req.user);
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3003';
+            const redirectUrl = `${frontendUrl}/auth/callback?token=${result.access_token}`;
+            return res.redirect(redirectUrl);
+        } catch (error) {
+            console.error('Google OAuth Error:', error);
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3003';
+            const errorUrl = `${frontendUrl}/auth/error?message=${encodeURIComponent(error.message)}`;
+            return res.redirect(errorUrl);
+        }
     }
 
 

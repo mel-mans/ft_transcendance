@@ -97,53 +97,84 @@ export class AppService {
         };
     }
 
-        // ========== OAUTH LOGIN/SIGNUP ==========
+    // ========== OAUTH LOGIN/SIGNUP ==========
     async oauthLogin(oauthUser: any) {
-        // Check if user exists by OAuth ID (42 or Google)
         let user;
-
+        
+        // ========== STEP 1: Try to find user by OAuth ID ==========
         if (oauthUser.intra42Id) {
-            // 42 OAuth user
             user = await this.prisma.user.findUnique({
                 where: { intra42Id: oauthUser.intra42Id },
             });
         } else if (oauthUser.googleId) {
-            // Google OAuth user
             user = await this.prisma.user.findUnique({
                 where: { googleId: oauthUser.googleId },
             });
         }
 
-        // If user doesn't exist, create new account
-        if (!user) {
-            // Check if email already exists (from regular signup)
-            if (oauthUser.email) {
-                const existingEmail = await this.prisma.user.findUnique({
-                    where: { email: oauthUser.email },
-                });
+        // ========== STEP 2: If found by OAuth ID, user already exists - just login ==========
+        if (user) {
+            const payload = {
+                sub: user.id,
+                email: user.email,
+                username: user.username,
+            };
 
-                if (existingEmail) {
-                    // Email exists but not linked to OAuth
-                    // You could link them or throw error
-                    throw new ConflictException(
-                        'Email already registered. Please login with email/password.'
-                    );
-                }
-            }
+            const accessToken = this.jwtService.sign(payload);
+            const { password, ...userWithoutPassword } = user;
 
-            // Create new user from OAuth data
-            user = await this.prisma.user.create({
-                data: {
-                    email: oauthUser.email,
-                    intra42Id: oauthUser.intra42Id || null,
-                    googleId: oauthUser.googleId || null,
-                    password: null, // OAuth users don't have passwords
-                    isVerified: true, // Auto-verify OAuth users
-                },
-            });
+            return {
+                message: 'Login successful',
+                access_token: accessToken,
+                user: userWithoutPassword,
+            };
         }
 
-        // Generate JWT token
+        // ========== STEP 3: Not found by OAuth ID - check if email exists ==========
+        if (oauthUser.email) {
+            const existingEmail = await this.prisma.user.findUnique({
+                where: { email: oauthUser.email },
+            });
+
+            if (existingEmail) {
+                // Email exists - link OAuth ID to existing account
+                user = await this.prisma.user.update({
+                    where: { id: existingEmail.id },
+                    data: {
+                        intra42Id: oauthUser.intra42Id || undefined,
+                        googleId: oauthUser.googleId || undefined,
+                        isVerified: true,
+                    },
+                });
+
+                const payload = {
+                    sub: user.id,
+                    email: user.email,
+                    username: user.username,
+                };
+
+                const accessToken = this.jwtService.sign(payload);
+                const { password, ...userWithoutPassword } = user;
+
+                return {
+                    message: 'Login successful',
+                    access_token: accessToken,
+                    user: userWithoutPassword,
+                };
+            }
+        }
+
+        // ========== STEP 4: User doesn't exist at all - create new account ==========
+        user = await this.prisma.user.create({
+            data: {
+                email: oauthUser.email,
+                intra42Id: oauthUser.intra42Id || null,
+                googleId: oauthUser.googleId || null,
+                password: null,
+                isVerified: true,
+            },
+        });
+
         const payload = {
             sub: user.id,
             email: user.email,
@@ -151,8 +182,6 @@ export class AppService {
         };
 
         const accessToken = this.jwtService.sign(payload);
-
-        // Remove sensitive data
         const { password, ...userWithoutPassword } = user;
 
         return {
@@ -161,5 +190,4 @@ export class AppService {
             user: userWithoutPassword,
         };
     }
-
 }
