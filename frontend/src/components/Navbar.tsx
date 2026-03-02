@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from '@/lib/auth';
-import { UserProfile } from "@/lib/matching";
+import { getCurrentUser } from "@/lib/matching";
 
 const Navbar = () => {
   const location = useLocation();
@@ -11,6 +11,7 @@ const Navbar = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user: currentUser } = useAuth();
+  const localProfile = getCurrentUser();
   
   useEffect(() => {
     const handleScroll = () => {
@@ -36,6 +37,12 @@ const Navbar = () => {
   }, [location.pathname]);
   
   const isLoggedIn = !!currentUser;
+  const resolvedAvatar =
+    localProfile?.avatar ||
+    (currentUser?.avatar && currentUser.avatar !== "default-avatar.png"
+      ? currentUser.avatar
+      : "");
+  const resolvedName = currentUser?.name || localProfile?.name || "User";
 
   const navLinks = isLoggedIn
     ? [
@@ -96,12 +103,12 @@ const Navbar = () => {
                   className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/40 backdrop-blur-xl hover:bg-white/10 transition-all duration-300"
                 >
                   <Avatar className="w-7 h-7 border border-primary/30">
-                    <AvatarImage src={currentUser?.avatar} alt={currentUser?.name} className="object-cover" />
+                    <AvatarImage src={resolvedAvatar} alt={resolvedName} className="object-cover" />
                     <AvatarFallback className="text-xs bg-primary/20 text-primary">
-                      {currentUser?.name?.charAt(0) ?? 'U'}
+                      {resolvedName?.charAt(0) ?? 'U'}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm font-medium text-foreground">{currentUser?.name}</span>
+                  <span className="text-sm font-medium text-foreground">{resolvedName}</span>
                 </Link>
               </div>
             ) : (
@@ -151,12 +158,12 @@ const Navbar = () => {
                     className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium hover:bg-white/10 transition-all"
                   >
                     <Avatar className="w-7 h-7 border border-primary/30">
-                      <AvatarImage src={currentUser?.avatar} alt={currentUser?.name} className="object-cover" />
+                      <AvatarImage src={resolvedAvatar} alt={resolvedName} className="object-cover" />
                       <AvatarFallback className="text-xs bg-primary/20 text-primary">
-                        {currentUser?.name?.charAt(0) ?? 'U'}
+                        {resolvedName?.charAt(0) ?? 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="text-foreground">{currentUser?.name}</span>
+                    <span className="text-foreground">{resolvedName}</span>
                   </Link>
                 ) : (
                   <Link 

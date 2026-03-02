@@ -27,9 +27,10 @@ import {
   Plus,
   Edit,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ProfileSetupForm from "@/components/ProfileSetupForm";
 import CreateListingForm from "@/components/CreateListingForm";
+import { useAuth } from "@/lib/auth";
 
 // Same sample profiles used in Matches
 const sampleProfiles: UserProfile[] = [
@@ -131,8 +132,31 @@ const emptyPreferences: UserPreferences = {
   clean: false,
 };
 
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  EUR: "€",
+  USD: "$",
+  GBP: "£",
+  CHF: "CHF",
+  JPY: "¥",
+  CAD: "C$",
+  AUD: "A$",
+  MAD: "Dh",
+};
+
 const normalizeUserProfile = (user: any): UserProfile | null => {
   if (!user) return null;
+
+  const preferences = user.preferences || {};
+  const location = preferences.location || user.location || "";
+  const moveInDate = preferences.moveInDate
+    ? String(preferences.moveInDate).slice(0, 10)
+    : user.moveInDate || "";
+  const budgetValue = preferences.budget ?? user.budget;
+  const currencyCode = preferences.currency || user.currency || "";
+  const budget =
+    budgetValue !== undefined && budgetValue !== null && String(budgetValue).trim() !== ""
+      ? `${CURRENCY_SYMBOLS[currencyCode] || currencyCode}${budgetValue}`
+      : "";
 
   return {
     id: String(user.id ?? ""),
@@ -140,12 +164,23 @@ const normalizeUserProfile = (user: any): UserProfile | null => {
     name: user.name || user.firstName || "",
     sex: user.sex,
     age: Number(user.age) || 0,
-    location: user.location || "",
+    location,
     bio: user.bio || "",
     avatar: user.avatar || "",
-    moveInDate: user.moveInDate || "",
-    budget: user.budget || "",
-    preferences: user.preferences || { ...emptyPreferences },
+    moveInDate,
+    budget,
+    preferences: {
+      smoking: Boolean(preferences.smoker ?? user.smoker ?? false),
+      quietHours: Boolean(preferences.quietHours ?? user.quietHours ?? false),
+      earlyBird: Boolean(preferences.earlyBird ?? user.earlyBird ?? false),
+      nightOwl: Boolean(preferences.nightOwl ?? user.nightOwl ?? false),
+      petsOk: Boolean(preferences.petFriendly ?? user.petFriendly ?? false),
+      cooking: Boolean(preferences.cooks ?? user.cooks ?? false),
+      gaming: Boolean(preferences.gamer ?? user.gamer ?? false),
+      social: Boolean(preferences.social ?? user.social ?? false),
+      studious: Boolean(preferences.studious ?? user.studious ?? false),
+      clean: Boolean(preferences.clean ?? user.clean ?? false),
+    },
   };
 };
 
@@ -163,6 +198,8 @@ const isProfileComplete = (user: UserProfile | null) => {
 };
 
 const Profile = () => {
+  const { user: authUser, updateUser, logout } = useAuth();
+  const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [matches, setMatches] = useState<Array<UserProfile & { matchScore: number }>>([]);
   const [showSetup, setShowSetup] = useState(false);
@@ -170,6 +207,7 @@ const Profile = () => {
   const [chatUser, setChatUser] = useState<{ name: string; avatar: string } | null>(null);
   const [showCreateListing, setShowCreateListing] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [logoutArmed, setLogoutArmed] = useState(false);
   const [myListings, setMyListings] = useState<Array<{ title: string; location: string; price: string; currency: string; availableDate: string; roommatesWanted: number; roommatesFound: number; amenities: string[]; images: string[]; description: string }>>([]);
 
   useEffect(() => {
@@ -177,22 +215,30 @@ const Profile = () => {
     sampleProfiles.forEach(saveProfile);
 
     (async () => {
+      const localUser = normalizeUserProfile(getCurrentUser());
+
       // Try fetching authenticated user from backend
       try {
         const apiUser = await api.fetchCurrentUser();
         const normalizedApiUser = normalizeUserProfile(apiUser);
         if (normalizedApiUser) {
-          setCurrentUser(normalizedApiUser);
-          storeCurrentUser(normalizedApiUser);
-          setShowSetup(!isProfileComplete(normalizedApiUser));
-          setMatches(isProfileComplete(normalizedApiUser) ? getMatchedProfiles(normalizedApiUser) : []);
+          const preferredUser =
+            isProfileComplete(normalizedApiUser) || !localUser
+              ? normalizedApiUser
+              : localUser;
+
+          setCurrentUser(preferredUser);
+          storeCurrentUser(preferredUser);
+          setShowSetup(!isProfileComplete(preferredUser));
+          setMatches(
+            isProfileComplete(preferredUser) ? getMatchedProfiles(preferredUser) : []
+          );
           return;
         }
       } catch (err) {
         // fallback to local stored user
       }
 
-      const localUser = normalizeUserProfile(getCurrentUser());
       setCurrentUser(localUser);
       if (localUser) {
         setShowSetup(!isProfileComplete(localUser));
@@ -203,9 +249,30 @@ const Profile = () => {
 
   const handleProfileComplete = (profile: UserProfile) => {
     setCurrentUser(profile);
+    updateUser({
+      ...(authUser || {}),
+      id: profile.id,
+      username: profile.username,
+      name: profile.name,
+      age: profile.age,
+      sex: profile.sex,
+      bio: profile.bio,
+      avatar: profile.avatar,
+    });
     setShowSetup(false);
     const matched = getMatchedProfiles(profile);
     setMatches(matched);
+  };
+
+  const handleLogoutClick = () => {
+    if (!logoutArmed) {
+      setLogoutArmed(true);
+      return;
+    }
+
+    localStorage.removeItem("42roommates_current_user");
+    logout();
+    navigate("/login");
   };
 
   const handleChatClick = (user: { name: string; avatar: string }) => {
@@ -225,9 +292,10 @@ const Profile = () => {
     ? Math.round(topMatches.reduce((sum, m) => sum + m.matchScore, 0) / topMatches.length)
     : 0;
 
-  const formattedSex = currentUser?.sex
-    ? `${currentUser.sex.charAt(0).toUpperCase()}${currentUser.sex.slice(1)}`
-    : "Not specified";
+  const displaySex =
+    currentUser?.sex && currentUser.sex !== "other"
+      ? `${currentUser.sex.charAt(0).toUpperCase()}${currentUser.sex.slice(1)}`
+      : "";
 
   // No profile state
   if (!currentUser && !showSetup) {
@@ -314,8 +382,10 @@ const Profile = () => {
                     <div className="text-sm text-muted-foreground mt-1">
                       {currentUser.username ? `@${currentUser.username}` : "@username"}
                     </div>
-                    <div className="text-sm text-muted-foreground mt-1">
-                      {formattedSex} : {currentUser.age} years
+                    <div className="mt-2">
+                      <span className="text-sm font-semibold text-primary">
+                        {displaySex ? `${displaySex} : ` : ""}{currentUser.age} years
+                      </span>
                     </div>
                     <div className="flex items-center gap-1.5 text-muted-foreground mt-1">
                       <MapPin className="w-4 h-4 shrink-0" />
@@ -361,6 +431,21 @@ const Profile = () => {
                   <span className="text-muted-foreground">{pref.label}</span>
                 </span>
               ))}
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <Button
+                size="sm"
+                onClick={handleLogoutClick}
+                className={
+                  logoutArmed
+                    ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    : ""
+                }
+                variant={logoutArmed ? "destructive" : "outline"}
+              >
+                {logoutArmed ? "Confirm Logout" : "Logout"}
+              </Button>
             </div>
           </div>
 

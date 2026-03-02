@@ -27,13 +27,66 @@ export interface UserProfile {
   preferences: UserPreferences;
 }
 
+const DEFAULT_PREFERENCES: UserPreferences = {
+  smoking: false,
+  quietHours: false,
+  earlyBird: false,
+  nightOwl: false,
+  petsOk: false,
+  cooking: false,
+  gaming: false,
+  social: false,
+  studious: false,
+  clean: false,
+};
+
+const normalizePreferences = (preferences: any): UserPreferences => ({
+  smoking: Boolean(preferences?.smoking),
+  quietHours: Boolean(preferences?.quietHours),
+  earlyBird: Boolean(preferences?.earlyBird),
+  nightOwl: Boolean(preferences?.nightOwl),
+  petsOk: Boolean(preferences?.petsOk),
+  cooking: Boolean(preferences?.cooking),
+  gaming: Boolean(preferences?.gaming),
+  social: Boolean(preferences?.social),
+  studious: Boolean(preferences?.studious),
+  clean: Boolean(preferences?.clean),
+});
+
+const normalizeProfile = (profile: any): UserProfile | null => {
+  if (!profile) return null;
+  return {
+    id: String(profile.id ?? ""),
+    username: profile.username,
+    name: profile.name || "",
+    sex: profile.sex,
+    age: Number(profile.age) || 0,
+    location: profile.location || "",
+    bio: profile.bio || "",
+    avatar: profile.avatar || "",
+    moveInDate: profile.moveInDate || "",
+    budget: profile.budget || "",
+    preferences: normalizePreferences(profile.preferences || DEFAULT_PREFERENCES),
+  };
+};
+
 const STORAGE_KEY = "42roommates_profiles";
 const CURRENT_USER_KEY = "42roommates_current_user";
 
 // Get all stored profiles
 export const getProfiles = (): UserProfile[] => {
   const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : [];
+  if (!stored) return [];
+
+  try {
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map(normalizeProfile)
+      .filter((profile): profile is UserProfile => profile !== null && Boolean(profile.id));
+  } catch {
+    return [];
+  }
 };
 
 // Save a profile
@@ -53,7 +106,12 @@ export const saveProfile = (profile: UserProfile): void => {
 // Get current user profile
 export const getCurrentUser = (): UserProfile | null => {
   const stored = localStorage.getItem(CURRENT_USER_KEY);
-  return stored ? JSON.parse(stored) : null;
+  if (!stored) return null;
+  try {
+    return normalizeProfile(JSON.parse(stored));
+  } catch {
+    return null;
+  }
 };
 
 // Set current user profile
@@ -64,11 +122,13 @@ export const setCurrentUser = (profile: UserProfile): void => {
 
 // Calculate match score between two users (0-100)
 export const calculateMatchScore = (user1: UserPreferences, user2: UserPreferences): number => {
-  const keys = Object.keys(user1) as (keyof UserPreferences)[];
+  const safeUser1 = normalizePreferences(user1 || DEFAULT_PREFERENCES);
+  const safeUser2 = normalizePreferences(user2 || DEFAULT_PREFERENCES);
+  const keys = Object.keys(safeUser1) as (keyof UserPreferences)[];
   let matches = 0;
   
   for (const key of keys) {
-    if (user1[key] === user2[key]) {
+    if (safeUser1[key] === safeUser2[key]) {
       matches++;
     }
   }

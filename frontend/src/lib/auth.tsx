@@ -5,6 +5,7 @@ import API from "@/lib/apiEndpoints";
 
 interface AuthContextType {
   user: any;
+  updateUser: (partialUser: Record<string, any>) => void;
   login: (identifier: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
   startOAuth: (provider: "google" | "42") => void;
@@ -88,8 +89,15 @@ export function AuthProvider({ children }: any) {
     setUser(null);
   };
 
+  const updateUser = (partialUser: Record<string, any>) => {
+    setUser((prev: any) => ({
+      ...(prev || {}),
+      ...(partialUser || {}),
+    }));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, signup, startOAuth, completeOAuthLogin, logout }}>
+    <AuthContext.Provider value={{ user, updateUser, login, signup, startOAuth, completeOAuthLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );

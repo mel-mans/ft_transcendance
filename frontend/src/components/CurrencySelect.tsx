@@ -23,14 +23,16 @@ interface CurrencySelectProps {
 }
 
 const CurrencySelect = ({ value, onChange }: CurrencySelectProps) => {
+  const selected = CURRENCIES.find((c) => c.code === value);
+
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="w-[80px] shrink-0 bg-white/5 border-white/10">
-        <SelectValue />
+      <SelectTrigger className="w-[96px] shrink-0 bg-white/5 border-white/10">
+        <SelectValue>{selected ? `${selected.symbol} ${selected.code}` : value}</SelectValue>
       </SelectTrigger>
       <SelectContent>
         {CURRENCIES.map((c) => (
-          <SelectItem key={c.code} value={c.symbol}>
+          <SelectItem key={c.code} value={c.code}>
             <span className="font-medium">{c.symbol}</span>
             <span className="ml-1.5 text-muted-foreground text-xs">{c.code}</span>
           </SelectItem>

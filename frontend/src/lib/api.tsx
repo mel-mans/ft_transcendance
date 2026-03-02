@@ -140,6 +140,35 @@ export async function fetchCurrentUser() {
   }
 }
 
+export interface CompleteProfilePayload {
+  username: string;
+  name: string;
+  age: number;
+  sex: "male" | "female" | "other";
+  bio: string;
+  location: string;
+  moveInDate: string;
+  budget: number;
+  currency: string;
+  smoker: boolean;
+  quietHours: boolean;
+  earlyBird: boolean;
+  nightOwl: boolean;
+  petFriendly: boolean;
+  cooks: boolean;
+  gamer: boolean;
+  social: boolean;
+  studious: boolean;
+  clean: boolean;
+}
+
+export async function completeUserProfile(payload: CompleteProfilePayload) {
+  return axiosInstance.post<{ message: string; user: any }>(
+    API.users.completeProfile,
+    payload
+  );
+}
+
 /* ================================
    EXPORT
 ================================ */
@@ -150,6 +179,7 @@ export default {
   setAuthToken,
   getAuthToken,
   fetchCurrentUser,
+  completeUserProfile,
   clearAuth: () => setAuthToken(null),
 };
 

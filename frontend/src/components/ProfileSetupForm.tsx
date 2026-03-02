@@ -4,8 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserPreferences, UserProfile, generateId, setCurrentUser } from "@/lib/matching";
+import { UserPreferences, UserProfile, setCurrentUser } from "@/lib/matching";
 import CurrencySelect from "@/components/CurrencySelect";
+import api, { CompleteProfilePayload } from "@/lib/api";
 
 interface PreferenceOption {
   key: keyof UserPreferences;
@@ -27,6 +28,30 @@ const preferenceOptions: PreferenceOption[] = [
   { key: "clean", emoji: "🧹", label: "Clean", description: "I keep things tidy" },
 ];
 
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  EUR: "€",
+  USD: "$",
+  GBP: "£",
+  CHF: "CHF",
+  JPY: "¥",
+  CAD: "C$",
+  AUD: "A$",
+  MAD: "Dh",
+};
+
+const toDateInputValue = (value?: string) => {
+  if (!value) return "";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.toISOString().slice(0, 10);
+};
+
+const extractBudgetValue = (value?: string) => {
+  if (!value) return "";
+  const numeric = value.replace(/[^\d]/g, "");
+  return numeric || "";
+};
+
 interface ProfileSetupFormProps {
   onComplete: (profile: UserProfile) => void;
   existingProfile?: UserProfile | null;
@@ -39,10 +64,12 @@ const ProfileSetupForm = ({ onComplete, existingProfile }: ProfileSetupFormProps
   const [age, setAge] = useState(existingProfile?.age?.toString() || "");
   const [location, setLocation] = useState(existingProfile?.location || "");
   const [bio, setBio] = useState(existingProfile?.bio || "");
-  const [moveInDate, setMoveInDate] = useState(existingProfile?.moveInDate || "");
-  const [budget, setBudget] = useState(existingProfile?.budget || "");
-  const [currency, setCurrency] = useState("€");
+  const [moveInDate, setMoveInDate] = useState(toDateInputValue(existingProfile?.moveInDate));
+  const [budget, setBudget] = useState(extractBudgetValue(existingProfile?.budget));
+  const [currency, setCurrency] = useState("EUR");
   const [avatarPreview, setAvatarPreview] = useState(existingProfile?.avatar || "");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -73,30 +100,90 @@ const ProfileSetupForm = ({ onComplete, existingProfile }: ProfileSetupFormProps
     setPreferences(prev => ({ ...prev, [key]: checked }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
     const normalizedSex = sex.trim().toLowerCase();
     const safeSex: "male" | "female" | "other" =
       normalizedSex === "male" || normalizedSex === "female" || normalizedSex === "other"
         ? normalizedSex
         : "other";
-    
-    const profile: UserProfile = {
-      id: existingProfile?.id || generateId(),
+
+    const budgetInt = Number.parseInt(budget, 10);
+    const ageInt = Number.parseInt(age, 10);
+    if (Number.isNaN(ageInt) || ageInt < 18 || ageInt > 100) {
+      setError("Age must be between 18 and 100.");
+      return;
+    }
+
+    if (Number.isNaN(budgetInt) || budgetInt <= 0) {
+      setError("Budget must be a valid number.");
+      return;
+    }
+
+    const payload: CompleteProfilePayload = {
       username: username.trim(),
-      name,
+      name: name.trim(),
+      age: ageInt,
       sex: safeSex,
-      age: parseInt(age) || 0,
-      location,
-      bio,
-      avatar: avatarPreview || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`,
+      bio: bio.trim(),
+      location: location.trim(),
       moveInDate,
-      budget,
-      preferences,
+      budget: budgetInt,
+      currency,
+      smoker: preferences.smoking,
+      quietHours: preferences.quietHours,
+      earlyBird: preferences.earlyBird,
+      nightOwl: preferences.nightOwl,
+      petFriendly: preferences.petsOk,
+      cooks: preferences.cooking,
+      gamer: preferences.gaming,
+      social: preferences.social,
+      studious: preferences.studious,
+      clean: preferences.clean,
     };
 
-    setCurrentUser(profile);
-    onComplete(profile);
+    setSubmitting(true);
+    try {
+      const response = await api.completeUserProfile(payload);
+      const backendUser = response?.user ?? {};
+      const backendPrefs = backendUser.preferences ?? {};
+      const profile: UserProfile = {
+        id: String(backendUser.id ?? existingProfile?.id ?? ""),
+        username: backendUser.username || payload.username,
+        name: backendUser.name || payload.name,
+        sex: (backendUser.sex || payload.sex) as "male" | "female" | "other",
+        age: Number(backendUser.age) || payload.age,
+        location: backendPrefs.location || payload.location,
+        bio: backendUser.bio || payload.bio,
+        avatar:
+          avatarPreview ||
+          backendUser.avatar ||
+          `https://api.dicebear.com/7.x/avataaars/svg?seed=${payload.name}`,
+        moveInDate: (backendPrefs.moveInDate || payload.moveInDate).slice(0, 10),
+        budget: `${CURRENCY_SYMBOLS[backendPrefs.currency || payload.currency] || payload.currency}${backendPrefs.budget || payload.budget}`,
+        preferences: {
+          smoking: Boolean(backendPrefs.smoker ?? payload.smoker),
+          quietHours: Boolean(backendPrefs.quietHours ?? payload.quietHours),
+          earlyBird: Boolean(backendPrefs.earlyBird ?? payload.earlyBird),
+          nightOwl: Boolean(backendPrefs.nightOwl ?? payload.nightOwl),
+          petsOk: Boolean(backendPrefs.petFriendly ?? payload.petFriendly),
+          cooking: Boolean(backendPrefs.cooks ?? payload.cooks),
+          gaming: Boolean(backendPrefs.gamer ?? payload.gamer),
+          social: Boolean(backendPrefs.social ?? payload.social),
+          studious: Boolean(backendPrefs.studious ?? payload.studious),
+          clean: Boolean(backendPrefs.clean ?? payload.clean),
+        },
+      };
+
+      setCurrentUser(profile);
+      onComplete(profile);
+    } catch (err: any) {
+      setError(err?.message || "Failed to save profile.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -206,9 +293,9 @@ const ProfileSetupForm = ({ onComplete, existingProfile }: ProfileSetupFormProps
               <Label htmlFor="moveInDate">Move-in Date</Label>
               <Input
                 id="moveInDate"
+                type="date"
                 value={moveInDate}
                 onChange={(e) => setMoveInDate(e.target.value)}
-                placeholder="e.g., Mar 2026"
                 required
                 className="bg-white/5 border-white/10"
               />
@@ -219,9 +306,11 @@ const ProfileSetupForm = ({ onComplete, existingProfile }: ProfileSetupFormProps
                 <CurrencySelect value={currency} onChange={setCurrency} />
                 <Input
                   id="budget"
+                  type="number"
+                  min="1"
                   value={budget}
                   onChange={(e) => setBudget(e.target.value)}
-                  placeholder="e.g. 500-700/mo"
+                  placeholder="e.g. 700"
                   required
                   className="bg-white/5 border-white/10"
                 />
@@ -272,8 +361,16 @@ const ProfileSetupForm = ({ onComplete, existingProfile }: ProfileSetupFormProps
             </div>
           </div>
 
-          <Button type="submit" className="w-full" size="lg">
-            {existingProfile ? "Save Changes" : "Create Profile & Find Matches"}
+          {error && (
+            <p className="text-sm text-destructive">{error}</p>
+          )}
+
+          <Button type="submit" className="w-full" size="lg" disabled={submitting}>
+            {submitting
+              ? "Saving..."
+              : existingProfile
+              ? "Save Changes"
+              : "Create Profile & Find Matches"}
           </Button>
         </form>
       </CardContent>

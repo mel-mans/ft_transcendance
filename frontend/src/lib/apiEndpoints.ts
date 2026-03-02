@@ -18,6 +18,7 @@ export const API_ENDPOINTS = {
     test: `${API_PREFIXES.users}/test`,
     me: `${API_PREFIXES.users}/me`,
     getById: (id: number | string) => `${API_PREFIXES.users}/${id}`,
+    completeProfile: `${API_PREFIXES.users}/complete-profile`,
     updateProfile: `${API_PREFIXES.users}/profile`,
     changePassword: `${API_PREFIXES.users}/password`,
   },

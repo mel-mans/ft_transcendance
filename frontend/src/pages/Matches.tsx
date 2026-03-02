@@ -6,7 +6,12 @@ import MatchCard from "@/components/MatchCard";
 import ChatPopup from "@/components/ChatPopup";
 import PageLayout from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
-import { UserProfile, getMatchedProfiles, saveProfile } from "@/lib/matching";
+import {
+  UserProfile,
+  getCurrentUser,
+  getMatchedProfiles,
+  saveProfile,
+} from "@/lib/matching";
 import { useAuth } from '@/lib/auth';
 import { Settings, Sparkles } from "lucide-react";
 
@@ -131,11 +136,50 @@ const Matches = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatUser, setChatUser] = useState<{ name: string; avatar: string } | null>(null);
   const { user: authUser } = useAuth();
+
+  const normalizeUserProfile = (user: any): UserProfile | null => {
+    if (!user) return null;
+
+    const preferences = user.preferences || {};
+
+    return {
+      id: String(user.id ?? ""),
+      username: user.username || "",
+      name: user.name || "",
+      sex: user.sex,
+      age: Number(user.age) || 0,
+      location: preferences.location || user.location || "",
+      bio: user.bio || "",
+      avatar: user.avatar || "",
+      moveInDate: preferences.moveInDate
+        ? String(preferences.moveInDate).slice(0, 10)
+        : user.moveInDate || "",
+      budget:
+        preferences.budget !== undefined && preferences.budget !== null
+          ? String(preferences.budget)
+          : user.budget || "",
+      preferences: {
+        smoking: Boolean(preferences.smoker ?? user.smoker ?? false),
+        quietHours: Boolean(preferences.quietHours ?? user.quietHours ?? false),
+        earlyBird: Boolean(preferences.earlyBird ?? user.earlyBird ?? false),
+        nightOwl: Boolean(preferences.nightOwl ?? user.nightOwl ?? false),
+        petsOk: Boolean(preferences.petFriendly ?? user.petFriendly ?? false),
+        cooking: Boolean(preferences.cooks ?? user.cooks ?? false),
+        gaming: Boolean(preferences.gamer ?? user.gamer ?? false),
+        social: Boolean(preferences.social ?? user.social ?? false),
+        studious: Boolean(preferences.studious ?? user.studious ?? false),
+        clean: Boolean(preferences.clean ?? user.clean ?? false),
+      },
+    };
+  };
+
   useEffect(() => {
     // Save sample profiles if they don't exist
     sampleProfiles.forEach(saveProfile);
 
-    const user = authUser || null;
+    const authNormalizedUser = normalizeUserProfile(authUser);
+    const localUser = normalizeUserProfile(getCurrentUser());
+    const user = authNormalizedUser || localUser;
     setCurrentUser(user);
 
     if (user) {
