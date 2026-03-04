@@ -1,10 +1,404 @@
+### ============================================
+### VARIABLES
+### ============================================
 
+@baseUrl = http://localhost:3004/api/auth
+@listingsUrl = http://localhost:3005/api/listings
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsImVtYWlsIjoidGVzdHVzZXIxMjNAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6bnVsbCwiaWF0IjoxNzcyNTg4MjIyLCJleHAiOjE3NzMxOTMwMjJ9.Phh7ZtwWsUe4Hhxbyw_D4sGhTQ5uflDJMSLmaSUQxqo
 
+### ============================================
+### SETUP: LOGIN & CREATE LISTING
+### ============================================
+
+### 1. Create User  (copy the access_token)
 POST http://localhost:3004/api/auth/signup
 Content-Type: application/json
 
 {
-    "email": "newuser@example.com",
-    "password": "Password123",
-    "username": "newuser"
+  "email": "testuser123@example.com",
+  "password": "Test1234"
 }
+
+
+### 1. Login (copy the access_token)
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "identifier": "testuser123@example.com",
+  "password": "Test1234"
+}
+
+### 2. Create a listing first (copy the listing id)
+POST {{listingsUrl}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Test Apartment for Photo Upload",
+  "location": "Paris 13e",
+  "price": 650,
+  "currency": "EUR",
+  "availableDate": "2026-04-01",
+  "spotsTotal": 2,
+  "spotsFilled": 0,
+  "description": "Testing photo upload functionality",
+  "hasWifi": true,
+  "hasKitchen": true,
+  "hasLaundry": false,
+  "hasMetroNearby": true,
+  "hasGarden": false,
+  "hasParking": true,
+  "petsOK": false,
+  "hasGym": false,
+  "hasAC": true,
+  "isSecure": true
+}
+
+### ============================================
+### UPLOAD LISTING PHOTOS
+### ============================================
+
+### 3. Upload 2 Photos (Minimum) ✅
+POST {{listingsUrl}}/1/photos
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo1.jpg"
+Content-Type: image/jpeg
+
+< /home/younesoun/Downloads/test1.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo2.jpg"
+Content-Type: image/jpeg
+
+< /home/younesoun/Downloads/test2.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 4. Upload 3 More Photos (Total will be 5) ✅
+POST {{listingsUrl}}/1/photos
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo3.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo3.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo4.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo4.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo5.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo5.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 5. Upload 1 More Photo (Total will be 6 - Maximum) ✅
+POST {{listingsUrl}}/1/photos
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo6.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo6.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### ============================================
+### ERROR CASES
+### ============================================
+
+### 6. Upload Only 1 Photo (Should FAIL - minimum 2) ❌
+POST {{listingsUrl}}/1/photos
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="single.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/single.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 7. Upload 7 Photos at Once (Should FAIL - max 6) ❌
+POST {{listingsUrl}}/1/photos
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo1.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo1.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo2.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo2.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo3.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo3.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo4.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo4.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo5.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo5.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo6.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo6.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo7.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo7.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 8. Upload When Already at 6 Photos (Should FAIL) ❌
+# First make sure listing has 6 photos, then try to add more
+POST {{listingsUrl}}/1/photos
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="extra.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/extra.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="extra2.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/extra2.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 9. Upload to Non-Existent Listing (Should FAIL - 404) ❌
+POST {{listingsUrl}}/99999/photos
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo1.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo1.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo2.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo2.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 10. Upload Without Token (Should FAIL - 401) ❌
+POST {{listingsUrl}}/1/photos
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo1.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo1.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo2.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo2.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 11. Upload Wrong File Type (Should FAIL - 400) ❌
+POST {{listingsUrl}}/1/photos
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="document.pdf"
+Content-Type: application/pdf
+
+< /path/to/your/document.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### ============================================
+### GET LISTING (VERIFY PHOTOS)
+### ============================================
+
+### 12. Get Listing Details (check images array)
+GET {{listingsUrl}}/1
+Authorization: Bearer {{token}}
+
+### 13. Get All Listings (see photos in list)
+GET {{listingsUrl}}/all
+
+### 14. Get My Listings (verify your listing has photos)
+GET {{listingsUrl}}/my-listings
+Authorization: Bearer {{token}}
+
+### ============================================
+### DELETE PHOTOS
+### ============================================
+
+### 15. Delete Photo at Index 0 (first photo) ✅
+DELETE {{listingsUrl}}/1/photos/0
+Authorization: Bearer {{token}}
+
+### 16. Delete Photo at Index 2 (third photo in array) ✅
+DELETE {{listingsUrl}}/1/photos/2
+Authorization: Bearer {{token}}
+
+### 17. Delete Last Photo ✅
+DELETE {{listingsUrl}}/1/photos/5
+Authorization: Bearer {{token}}
+
+### 18. Delete Invalid Index (Should FAIL - 400) ❌
+DELETE {{listingsUrl}}/1/photos/99
+Authorization: Bearer {{token}}
+
+### 19. Delete Photo Without Token (Should FAIL - 401) ❌
+DELETE {{listingsUrl}}/1/photos/0
+
+### 20. Try to Delete When Only 2 Photos Left (Should FAIL) ❌
+# First make sure listing has exactly 2 photos
+# Then try to delete one (should fail because minimum is 2)
+DELETE {{listingsUrl}}/1/photos/0
+Authorization: Bearer {{token}}
+
+### ============================================
+### DELETE PHOTOS - OTHER USER'S LISTING
+### ============================================
+
+### 21. Create Second User & Login
+POST {{baseUrl}}/signup
+Content-Type: application/json
+
+{
+  "email": "seconduser@example.com",
+  "password": "Test1234"
+}
+
+###
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "identifier": "seconduser@example.com",
+  "password": "Test1234"
+}
+
+### 22. Try to Upload Photos to First User's Listing (Should FAIL - 403) ❌
+# Use second user's token
+POST {{listingsUrl}}/1/photos
+Authorization: Bearer SECOND_USER_TOKEN_HERE
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo1.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo1.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo2.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo2.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 23. Try to Delete Photos from First User's Listing (Should FAIL - 403) ❌
+DELETE {{listingsUrl}}/1/photos/0
+Authorization: Bearer SECOND_USER_TOKEN_HERE
+
+### ============================================
+### COMPLETE WORKFLOW
+### ============================================
+
+### 24. WORKFLOW: Create Listing → Upload Photos → View → Delete One
+###
+
+# Step 1: Login
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "identifier": "testuser123",
+  "password": "Test1234"
+}
+
+###
+# Step 2: Create listing (copy ID from response)
+POST {{listingsUrl}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Workflow Test Apartment",
+  "location": "Casablanca",
+  "price": 5000,
+  "currency": "MAD",
+  "availableDate": "2026-05-01",
+  "spotsTotal": 1,
+  "spotsFilled": 0,
+  "description": "Complete workflow test",
+  "hasWifi": true,
+  "hasKitchen": true,
+  "hasLaundry": true,
+  "hasMetroNearby": false,
+  "hasGarden": false,
+  "hasParking": false,
+  "petsOK": true,
+  "hasGym": false,
+  "hasAC": true,
+  "isSecure": true
+}
+
+###
+# Step 3: Upload 3 photos
+POST {{listingsUrl}}/LISTING_ID_HERE/photos
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo1.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo1.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo2.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo2.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo3.jpg"
+Content-Type: image/jpeg
+
+< /path/to/your/photo3.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+# Step 4: Get listing to see photos
+GET {{listingsUrl}}/LISTING_ID_HERE
+
+###
+# Step 5: Delete one photo
+DELETE {{listingsUrl}}/LISTING_ID_HERE/photos/1
+Authorization: Bearer {{token}}
+
+###
+# Step 6: Verify photo was deleted
+GET {{listingsUrl}}/LISTING_ID_HERE

@@ -1,7 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 import { CreateListingDto } from './dto/create-listing.dto';
 import { UpdateListingDto } from './dto/update-listing.dto';
+import * as fs from 'fs';      // ← ADD
+import * as path from 'path';  // ← ADD
 
 @Injectable()
 export class AppService {
@@ -191,6 +193,134 @@ export class AppService {
 
         return {
             message: 'Listing deleted successfully',
+        };
+    }
+
+    // ========== UPLOAD LISTING PHOTOS ==========
+    async uploadListingPhotos(listingId: number, userId: number, files: Express.Multer.File[]) {
+        // Validate file count
+        if (!files || files.length < 2) {
+            throw new BadRequestException('Minimum 2 photos required');
+        }
+
+        if (files.length > 6) {
+            throw new BadRequestException('Maximum 6 photos allowed');
+        }
+
+        // Check if listing exists and belongs to user
+        const listing = await this.prisma.listing.findUnique({
+            where: { id: listingId },
+        });
+
+        if (!listing) {
+            throw new NotFoundException('Listing not found');
+        }
+
+        if (listing.userId !== userId) {
+            // Delete uploaded files if not authorized
+            files.forEach(file => fs.unlinkSync(file.path));
+            throw new ForbiddenException('You can only upload photos to your own listings');
+        }
+
+        // Check if listing already has photos (max 6 total)
+        const currentPhotoCount = listing.images.length;
+        const newPhotoCount = files.length;
+        const totalPhotos = currentPhotoCount + newPhotoCount;
+
+        if (totalPhotos > 6) {
+            // Delete uploaded files
+            files.forEach(file => fs.unlinkSync(file.path));
+            throw new BadRequestException(
+                `Cannot add ${newPhotoCount} photos. Listing already has ${currentPhotoCount} photos. Maximum is 6.`
+            );
+        }
+
+        // Generate photo URLs
+        const photoUrls = files.map(file => `/uploads/listings/${file.filename}`);
+
+        // Add photos to existing images array
+        const updatedImages = [...listing.images, ...photoUrls];
+
+        // Update listing
+        const updatedListing = await this.prisma.listing.update({
+            where: { id: listingId },
+            data: { images: updatedImages },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        name: true,
+                        avatar: true,
+                    },
+                },
+            },
+        });
+
+        return {
+            message: `${files.length} photo(s) uploaded successfully`,
+            totalPhotos: updatedImages.length,
+            listing: updatedListing,
+        };
+    }
+
+    // ========== DELETE LISTING PHOTO ==========
+    async deleteListingPhoto(listingId: number, userId: number, photoIndex: number) {
+        // Check if listing exists and belongs to user
+        const listing = await this.prisma.listing.findUnique({
+            where: { id: listingId },
+        });
+
+        if (!listing) {
+            throw new NotFoundException('Listing not found');
+        }
+
+        if (listing.userId !== userId) {
+            throw new ForbiddenException('You can only delete photos from your own listings');
+        }
+
+        // Check if photo index is valid
+        if (photoIndex < 0 || photoIndex >= listing.images.length) {
+            throw new BadRequestException(`Invalid photo index. Listing has ${listing.images.length} photos.`);
+        }
+
+        // Get photo URL to delete
+        const photoToDelete = listing.images[photoIndex];
+
+        // Delete physical file
+        const photoPath = path.join('./uploads/listings', path.basename(photoToDelete));
+        if (fs.existsSync(photoPath)) {
+            fs.unlinkSync(photoPath);
+        }
+
+        // Remove photo from array
+        const updatedImages = listing.images.filter((_, index) => index !== photoIndex);
+
+        // Check if minimum photos requirement is met
+        if (updatedImages.length < 2 && updatedImages.length > 0) {
+            throw new BadRequestException('Cannot delete photo. Listings must have at least 2 photos or none.');
+        }
+
+        // Update listing
+        const updatedListing = await this.prisma.listing.update({
+            where: { id: listingId },
+            data: { images: updatedImages },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        name: true,
+                        avatar: true,
+                    },
+                },
+            },
+        });
+
+        return {
+            message: 'Photo deleted successfully',
+            totalPhotos: updatedImages.length,
+            listing: updatedListing,
         };
     }
 }

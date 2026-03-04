@@ -21,28 +21,17 @@
 
 
 
+### Upload Avatar
 
-POST http://localhost:3005/api/listings
+
+### Upload Avatar
+DELETE  http://localhost:3002/api/users/avatar
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjpudWxsLCJpYXQiOjE3NzI1ODM2NjksImV4cCI6MTc3MzE4ODQ2OX0.EUT_Qldage4M1D_5Ed8EswuNDgjM1Wve-gNwuSnwjE0
-Content-Type: application/json
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
-{
-  "title": "Cozy Apartment near Campus",
-  "location": "Paris 13e",
-  "price": 650,
-  "currency": "EUR",
-  "availableDate": "2026-02-01",
-  "spotsTotal": 2,
-  "spotsFilled": 0,
-  "description": "Nice apartment with balcony and great view...",
-  "hasWifi": true,
-  "hasKitchen": true,
-  "hasLaundry": false,
-  "hasMetroNearby": true,
-  "hasGarden": false,
-  "hasParking": true,
-  "petsOK": false,
-  "hasGym": false,
-  "hasAC": true,
-  "isSecure": true
-}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="test_image.jpg"
+Content-Type: image/jpeg
+
+< /home/younesoun/Downloads/test_image.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--

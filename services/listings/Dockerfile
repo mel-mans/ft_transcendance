@@ -27,6 +27,9 @@ COPY --chown=devops_user:devops_user --from=builder /app/node_modules ./node_mod
 COPY --chown=devops_user:devops_user --from=builder /app/package.json ./package.json
 COPY --chown=devops_user:devops_user --from=builder /app/prisma ./prisma
 
+RUN mkdir -p /app/uploads/listings
+RUN chown -R devops_user:devops_user /app/uploads
+
 USER devops_user
 
 # The final image HAS NO:

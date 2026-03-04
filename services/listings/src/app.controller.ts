@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Req, ParseIntPipe } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody, ApiParam } from '@nestjs/swagger';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Req, ParseIntPipe, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody, ApiParam, ApiConsumes } from '@nestjs/swagger';
 import { AppService } from './app.service';
 import { CreateListingDto } from './dto/create-listing.dto';
 import { UpdateListingDto } from './dto/update-listing.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { multerConfig } from './config/multer.config';
 
 @ApiTags('Listings')
 @Controller()
@@ -87,4 +89,62 @@ export class AppController {
         const userId = req.user.userId;
         return this.appService.deleteListing(id, userId);
     }
+// ========== UPLOAD LISTING PHOTOS ==========
+@UseGuards(JwtAuthGuard)
+@Post(':id/photos')
+@ApiBearerAuth()
+@ApiOperation({ summary: 'Upload listing photos (2-6 images)' })
+@ApiParam({ name: 'id', description: 'Listing ID' })
+@ApiConsumes('multipart/form-data')
+@ApiBody({
+    schema: {
+        type: 'object',
+        properties: {
+            files: {
+                type: 'array',
+                items: {
+                    type: 'string',
+                    format: 'binary',
+                },
+            },
+        },
+    },
+})
+    @ApiResponse({ status: 200, description: 'Photos uploaded successfully' })
+    @ApiResponse({ status: 400, description: 'Invalid number of files (need 2-6)' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Not your listing' })
+    @ApiResponse({ status: 404, description: 'Listing not found' })
+    @UseInterceptors(FilesInterceptor('files', 6, multerConfig))
+    async uploadPhotos(
+        @Param('id', ParseIntPipe) id: number,
+        @Req() req: any,
+        @UploadedFiles() files: Express.Multer.File[],
+    ) {
+        const userId = req.user.userId;
+        return this.appService.uploadListingPhotos(id, userId, files);
+    }
+
+    // ========== DELETE SPECIFIC PHOTO ==========
+    @UseGuards(JwtAuthGuard)
+    @Delete(':id/photos/:photoIndex')
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Delete specific photo from listing' })
+    @ApiParam({ name: 'id', description: 'Listing ID' })
+    @ApiParam({ name: 'photoIndex', description: 'Photo index (0-based)' })
+    @ApiResponse({ status: 200, description: 'Photo deleted successfully' })
+    @ApiResponse({ status: 400, description: 'Invalid photo index' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Not your listing' })
+    @ApiResponse({ status: 404, description: 'Listing not found' })
+    async deletePhoto(
+        @Param('id', ParseIntPipe) id: number,
+        @Param('photoIndex', ParseIntPipe) photoIndex: number,
+        @Req() req: any,
+    ) {
+        const userId = req.user.userId;
+        return this.appService.deleteListingPhoto(id, userId, photoIndex);
+    }
+
+
 }

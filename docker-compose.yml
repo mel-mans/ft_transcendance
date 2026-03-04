@@ -111,6 +111,7 @@ services:
       - microservices_network
     volumes:
       - ./prisma:/app/prisma
+      - ./uploads:/app/uploads
   listings:
     container_name: listings
     build:
@@ -132,6 +133,7 @@ services:
       - microservices_network
     volumes:
       - ./prisma:/app/prisma
+      - ./uploads:/app/uploads
   postgres:
     image: postgres:16
     platform: ${DOCKER_PLATFORM:-linux/amd64}
