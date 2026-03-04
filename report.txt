@@ -1,0 +1,455 @@
+===============================================================================
+                    DEVOPS AUDIT REPORT — 42 RoomMates
+                         Generated: March 3, 2026
+===============================================================================
+
+
+==============================================================================
+🔴 1. Nginx Reverse Proxy — Broken Path Rewriting (CRITICAL)
+==============================================================================
+
+File: infrastructure/nginx/conf.d/default.conf (lines 72-93)
+
+Three distinct bugs in the active server block:
+
+--- 1a. Missing trailing slashes on proxy_pass for auth & chat ---
+
+  location /api/auth/  { proxy_pass http://auth:3004/api/auth; }   ← missing /
+  location /api/chat/  { proxy_pass http://chat:3001/api/chat; }   ← missing /
+
+How nginx URI rewriting works: When the location has a URI prefix and
+proxy_pass also has a URI, nginx strips the matched location prefix from
+the request and appends the remainder to the proxy_pass URI. Because
+proxy_pass has no trailing /, the paths get concatenated incorrectly:
+
+  Request: /api/auth/login → strips /api/auth/ → remainder: login
+  → proxied to: http://auth:3004/api/authlogin  ❌
+
+SOLUTION: Add trailing slashes to all proxy_pass directives:
+  proxy_pass http://auth:3004/api/auth/;
+  proxy_pass http://chat:3001/api/chat/;
+
+--- 1b. User service route prefix mismatch ---
+
+  location /api/user  { proxy_pass http://user:3002/api/user; }
+
+The user_management service registers its global prefix as "api/users"
+(with 's'). Nginx proxies to /api/user (no 's'). The backend will never
+match these routes → all user API calls return 404.
+
+SOLUTION:
+  location /api/users/ { proxy_pass http://user:3002/api/users/; }
+
+--- 1c. Listings missing trailing slash ---
+
+  proxy_pass http://listings:3005/api/listings;
+
+Same trailing slash issue as auth and chat.
+
+SOLUTION:
+  location /api/listings/ { proxy_pass http://listings:3005/api/listings/; }
+
+--- 1d. Missing proxy headers ---
+
+None of the location blocks forward essential headers. The backend
+services won't know the client's real IP, protocol, or Host.
+
+SOLUTION: Add to each location block:
+  proxy_set_header Host $host;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-Forwarded-Proto $scheme;
+
+--- 1e. No WebSocket upgrade support ---
+
+The frontend location / has no WebSocket upgrade headers. If the chat
+service ever implements WebSockets, it will break.
+
+SOLUTION: Add to the relevant locations:
+  proxy_http_version 1.1;
+  proxy_set_header Upgrade $http_upgrade;
+  proxy_set_header Connection "upgrade";
+
+
+==============================================================================
+🔴 2. Docker Compose — Missing DATABASE_URL for Services (CRITICAL)
+==============================================================================
+
+File: docker-compose.yml (lines 45-63)
+
+Only the auth service has an explicit DATABASE_URL environment override:
+  environment:
+    DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@postgres_db:5432/auth_db
+
+The user_management and listings services have none. They inherit the
+.env file, which contains:
+  DATABASE_URL=postgresql://postgres:12345678@postgres_db:5432/auth_db
+
+This happens to work because the hostname postgres_db is resolvable on
+the Docker network. However it's fragile — if anyone changes .env to use
+localhost for local dev, all services break in Docker.
+
+SOLUTION: Be explicit in docker-compose for every service that needs a DB:
+  user:
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@postgres_db:5432/auth_db?schema=public
+  listings:
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@postgres_db:5432/auth_db?schema=public
+
+
+==============================================================================
+🔴 3. Chat Service Dockerfile CMD Will Crash (CRITICAL)
+==============================================================================
+
+File: services/chat/Dockerfile (line 41)
+
+  CMD ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && node dist/main.js"]
+
+The chat service does not use a database. There is no DATABASE_URL in
+docker-compose for this service. "npx prisma migrate deploy" will fail
+because Prisma can't connect → the container will crash-loop forever.
+
+SOLUTION: Change the CMD to simply:
+  CMD ["node", "dist/main.js"]
+
+
+==============================================================================
+🔴 4. Missing depends_on for user & listings Services (CRITICAL)
+==============================================================================
+
+File: docker-compose.yml (lines 91-115)
+
+The user and listings services use Prisma/PostgreSQL but have no
+depends_on for the postgres service. Docker may start them before
+PostgreSQL is healthy, causing connection errors and crash-loops.
+
+SOLUTION:
+  user:
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  listings:
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+
+==============================================================================
+🔴 5. User Management Default Port Conflict (CRITICAL)
+==============================================================================
+
+Service         | Env Var              | Fallback
+----------------|----------------------|---------
+user_management | USER_SERVICE_PORT    | 3005
+listings        | LISTINGS_SERVICE_PORT| 3005
+
+Both services default to port 3005. The docker-compose healthcheck for
+user expects port 3002 (http://user:3002/api/users). Your .env has
+USER_SERVICE_PORT=3002, so this is fine currently. BUT if .env is
+missing, both services would collide on port 3005.
+
+SOLUTION: Fix the fallback in user_management's main.ts to 3002:
+  const port = process.env.USER_SERVICE_PORT || 3002;
+
+
+==============================================================================
+🟠 6. No .dockerignore File — Bloated Build Context (HIGH)
+==============================================================================
+
+File: Missing entirely
+
+All Dockerfiles use context: . (project root). Without a .dockerignore,
+every file in the project is sent to the Docker daemon on every build:
+  - All node_modules/ directories (potentially hundreds of MB)
+  - .git/ history
+  - All other services' source code
+  - Infrastructure configs, test files, etc.
+
+SOLUTION: Create a .dockerignore at the project root:
+  node_modules
+  .git
+  *.md
+  tests
+  infrastructure/logging
+  infrastructure/monitoring
+  frontend/node_modules
+  services/*/node_modules
+  .env
+  .env.example
+
+
+==============================================================================
+🟠 7. EXPOSE ${VAR} Does Not Expand Variables (HIGH)
+==============================================================================
+
+Files: All four service Dockerfiles
+
+  EXPOSE ${AUTH_SERVICE_PORT}
+  EXPOSE ${CHAT_SERVICE_PORT}
+  EXPOSE ${USER_SERVICE_PORT}
+  EXPOSE ${LISTINGS_SERVICE_PORT}
+
+The EXPOSE instruction does not expand environment variables at build
+time. These are treated as literal strings and are effectively no-ops.
+
+SOLUTION: Use hardcoded port numbers:
+  EXPOSE 3004    # auth
+  EXPOSE 3001    # chat
+  EXPOSE 3002    # user
+  EXPOSE 3005    # listings
+
+Or use ARG to pass them at build time:
+  ARG SERVICE_PORT=3004
+  EXPOSE ${SERVICE_PORT}
+
+
+==============================================================================
+🟠 8. Nginx Dockerfile Has Conflicting CMD (HIGH)
+==============================================================================
+
+File: infrastructure/nginx/Dockerfile
+
+  CMD ["nginx", "-g", "daemon off;"]
+
+But docker-compose.yml overrides it with:
+  entrypoint: ["nginx", "-g", "daemon off;"]
+
+Using entrypoint in compose replaces the Dockerfile's ENTRYPOINT, and
+since CMD provides default arguments to ENTRYPOINT, the behavior is
+confusing. It works but is not clean.
+
+SOLUTION: Pick one. Either use CMD in the Dockerfile (and remove
+entrypoint from compose), or use entrypoint in compose and remove CMD
+from the Dockerfile.
+
+
+==============================================================================
+🟠 9. Nginx Healthcheck Needs curl (Not Installed) (HIGH)
+==============================================================================
+
+File: docker-compose.yml (line 14)
+
+  test: [ "CMD", "curl", "-k", "https://nginx:443" ]
+
+curl may not be available in the nginx image. Your custom Dockerfile
+doesn't install it either.
+
+SOLUTION: Either install curl in the nginx Dockerfile:
+  RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+Or use a different healthcheck approach:
+  test: ["CMD-SHELL", "wget --no-check-certificate -qO- https://localhost:443 || exit 1"]
+
+
+==============================================================================
+🟠 10. prisma in devDependencies Inconsistently (HIGH)
+==============================================================================
+
+Service         | prisma placement
+----------------|------------------
+auth            | dependencies ✅
+chat            | dependencies ✅
+user_management | devDependencies ⚠️
+listings        | devDependencies ⚠️
+
+If npm install --production were ever used, Prisma CLI wouldn't be
+available. Currently safe because the Dockerfiles use npm install, but
+fragile.
+
+SOLUTION: Move prisma to dependencies in both user_management and
+listings package.json files.
+
+
+==============================================================================
+🟠 11. All Dockerfiles COPY the Entire Monorepo (HIGH)
+==============================================================================
+
+Files: All service Dockerfiles
+
+  COPY . .
+
+With context: . in docker-compose, this copies the entire project root
+into every service's builder stage — including all other services, the
+frontend, infrastructure configs, and everything else.
+
+SOLUTION: Restructure the COPY commands to be selective:
+  COPY services/auth/ ./services/auth/
+  COPY prisma/ ./prisma/
+
+Or add the .dockerignore from issue #6.
+
+
+==============================================================================
+🟡 12. SSL Certificate — Self-Signed with No Rotation (MEDIUM)
+==============================================================================
+
+File: infrastructure/nginx/certs/generate_certs.sh
+
+- The self-signed cert is generated with -days 365 — no reminder or
+  automation for renewal.
+- The cert uses CN=localhost — only valid for local dev.
+- No HTTP→HTTPS redirect (the port 80 redirect is commented out).
+
+SOLUTION for dev: Acceptable. Document that the cert is self-signed.
+SOLUTION for production: Use Let's Encrypt with certbot or Traefik.
+
+
+==============================================================================
+🟡 13. No Container Resource Limits (MEDIUM)
+==============================================================================
+
+File: docker-compose.yml
+
+No service has CPU or memory limits. A misbehaving service can consume
+all host resources and take down everything.
+
+SOLUTION: Add resource limits:
+  services:
+    auth:
+      deploy:
+        resources:
+          limits:
+            cpus: '0.5'
+            memory: 512M
+          reservations:
+            memory: 256M
+
+
+==============================================================================
+🟡 14. No Restart Backoff or Logging Limits (MEDIUM)
+==============================================================================
+
+File: docker-compose.yml
+
+All services use restart: unless-stopped. If a service crashes in a loop
+(e.g., the chat service due to issue #3), Docker will restart it
+infinitely, flooding disk with logs.
+
+SOLUTION: Add logging limits to each service:
+  services:
+    auth:
+      logging:
+        driver: "json-file"
+        options:
+          max-size: "10m"
+          max-file: "3"
+
+
+==============================================================================
+🟡 15. Healthcheck Intervals Are Too Aggressive (MEDIUM)
+==============================================================================
+
+File: docker-compose.yml
+
+All healthchecks use:
+  interval: 2s
+  timeout: 5s
+  retries: 2
+
+- 2-second interval is very aggressive
+- Only 2 retries means a service is marked unhealthy after just 4 seconds
+- No start_period — healthchecks run immediately before apps boot
+
+SOLUTION:
+  healthcheck:
+    test: [...]
+    interval: 10s
+    timeout: 5s
+    retries: 3
+    start_period: 30s
+
+
+==============================================================================
+🟡 16. PostgreSQL Data — No Backup Strategy (MEDIUM)
+==============================================================================
+
+File: docker-compose.yml (lines 121-139)
+
+- make fclean runs docker compose down -v, which destroys the volume
+  and all data.
+- No automated backups.
+- No pg_dump cron or backup container.
+
+SOLUTION: Add a backup mechanism and consider removing -v from fclean
+or adding a separate "nuke" target that explicitly warns about data loss.
+
+
+==============================================================================
+🟡 17. No Docker Network Isolation (MEDIUM)
+==============================================================================
+
+File: docker-compose.yml (lines 185-195)
+
+All services are on the same microservices_network. Any service can talk
+to any other service directly. No network segmentation.
+
+SOLUTION (optional, defense-in-depth): Create separate networks:
+  networks:
+    frontend_net:   # nginx <-> frontend
+    backend_net:    # nginx <-> backend services
+    database_net:   # backend services <-> postgres
+
+
+==============================================================================
+🟡 18. OAuth Callback URLs Point to localhost:3004 (MEDIUM)
+==============================================================================
+
+File: .env
+
+  INTRA42_CALLBACK_URL="http://localhost:3004/api/auth/42/callback"
+  GOOGLE_CALLBACK_URL="http://localhost:3004/api/auth/google/callback"
+
+These point to localhost:3004 (the auth service directly), bypassing
+nginx entirely. In Docker, the browser can't reach localhost:3004 unless
+the port is published (it's commented out in docker-compose).
+
+SOLUTION: Route callbacks through nginx:
+  INTRA42_CALLBACK_URL=https://localhost/api/auth/42/callback
+  GOOGLE_CALLBACK_URL=https://localhost/api/auth/google/callback
+
+
+==============================================================================
+🟡 19. .env Contains Stray Text (LOW)
+==============================================================================
+
+File: .env (line 6)
+
+The word "microservices" appears on its own line with no assignment.
+While most .env parsers ignore this, it could cause warnings or
+unexpected behavior with some tools.
+
+SOLUTION: Remove the stray line or turn it into a proper comment:
+  # Internal ports for microservices
+
+
+==============================================================================
+                         PRIORITY SUMMARY
+==============================================================================
+
+#  | Severity   | Issue                                     | Impact
+---|------------|-------------------------------------------|---------------------------
+1  | 🔴 Critical | Nginx proxy_pass path rewriting bugs      | All API routes return 404
+2  | 🔴 Critical | Missing explicit DATABASE_URL              | DB connection failures
+3  | 🔴 Critical | Chat Dockerfile CMD runs Prisma w/o DB     | Container crash-loops
+4  | 🔴 Critical | Missing depends_on for postgres            | Race condition on startup
+5  | 🔴 Critical | User service default port wrong            | Healthcheck fails
+6  | 🟠 High     | No .dockerignore                          | Slow builds, bloated images
+7  | 🟠 High     | EXPOSE ${VAR} doesn't expand              | Non-functional EXPOSE
+8  | 🟠 High     | Conflicting CMD vs entrypoint for nginx   | Confusing behavior
+9  | 🟠 High     | Nginx healthcheck needs curl              | Healthcheck may fail
+10 | 🟠 High     | prisma in devDependencies inconsistently  | Fragile builds
+11 | 🟠 High     | Dockerfiles COPY entire monorepo          | Huge images, security risk
+12 | 🟡 Medium   | Self-signed cert with no rotation         | Manual maintenance
+13 | 🟡 Medium   | No container resource limits              | Resource exhaustion risk
+14 | 🟡 Medium   | No logging limits                         | Disk exhaustion risk
+15 | 🟡 Medium   | Healthcheck intervals too aggressive      | False unhealthy at startup
+16 | 🟡 Medium   | No database backup strategy               | Data loss risk
+17 | 🟡 Medium   | No network segmentation                   | Lateral movement risk
+18 | 🟡 Medium   | OAuth callbacks bypass nginx              | Won't work in Docker
+19 | 🟡 Low      | Stray text in .env                        | Possible parser warnings
+
+>>> START WITH ISSUES 1-5 — they will cause immediate failures on docker compose up.
+
+===============================================================================
