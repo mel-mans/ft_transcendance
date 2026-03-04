@@ -9,10 +9,28 @@ import * as path from 'path';
 
 @Injectable()
 export class AppService {
+    private readonly startTime = Date.now();
+
     constructor(private prisma: PrismaService) {}
     
-    getHello(): string {
-        return 'Hello from User Management Service!';
+    async getHealthCheck() {
+        let dbStatus = 'ok';
+        try {
+            await this.prisma.$queryRaw`SELECT 1`;
+        } catch {
+            dbStatus = 'error';
+        }
+
+        return {
+            status: dbStatus === 'ok' ? 'ok' : 'error',
+            service: 'user-management',
+            version: '1.0.0',
+            uptime: Math.floor((Date.now() - this.startTime) / 1000),
+            timestamp: new Date().toISOString(),
+            checks: {
+                database: dbStatus,
+            },
+        };
     }
     // ========== GET CURRENT USER (ME) ==========
     async getMe(userId: number) {

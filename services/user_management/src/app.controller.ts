@@ -17,8 +17,8 @@ export class AppController {
     @Get()
     @ApiOperation({ summary: 'Health check' })
     @ApiResponse({ status: 200, description: 'Service is running' })
-    getHello(): string {
-        return this.appService.getHello();
+    getHealthCheck() {
+        return this.appService.getHealthCheck();
     }
 
     // Test protected route

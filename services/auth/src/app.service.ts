@@ -7,10 +7,28 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AppService {
+    private readonly startTime = Date.now();
+
     constructor(private prisma: PrismaService, private jwtService: JwtService,) {}
     
-    getHello(): string {
-        return 'Hello from Auth Service!';
+    async getHealthCheck() {
+        let dbStatus = 'ok';
+        try {
+            await this.prisma.$queryRaw`SELECT 1`;
+        } catch {
+            dbStatus = 'error';
+        }
+
+        return {
+            status: dbStatus === 'ok' ? 'ok' : 'error',
+            service: 'auth',
+            version: '1.0.0',
+            uptime: Math.floor((Date.now() - this.startTime) / 1000),
+            timestamp: new Date().toISOString(),
+            checks: {
+                database: dbStatus,
+            },
+        };
     }
 
     //sigup

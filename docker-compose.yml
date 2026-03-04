@@ -1,29 +1,36 @@
 services:
   nginx:
     container_name: nginx
-    image: owasp/modsecurity:nginx
+    image: nginx
     platform: ${DOCKER_PLATFORM:-linux/amd64}
+    build: infrastructure/nginx
     restart: unless-stopped
+    # FIX #8: Removed entrypoint override — CMD is defined in the Dockerfile
     ports:
-      - "80:80"
       - "443:443"
     volumes:
-      # Nginx config
-      - ./infrastructure/nginx/conf.d/default.conf:/etc/nginx/templates/conf.d/default.conf.template:ro
-      # SSL certificates
       - ./infrastructure/nginx/certs:/etc/nginx/certs:ro
-
     healthcheck:
-      test: ["CMD", "curl", "-k", "https://nginx:443"]
-      interval: 2s
+      # FIX #9: curl is now installed in the nginx Dockerfile
+      # FIX #15: Relaxed healthcheck intervals + added start_period
+      test: [ "CMD", "curl", "-k", "https://localhost:443" ]
+      interval: 10s
       timeout: 5s
-      retries: 2
+      retries: 3
+      start_period: 10s
+    # FIX #14: Added logging limits to prevent disk exhaustion
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     env_file:
       - .env
     networks:
       - microservices_network
     depends_on:
-      - front
+      front:
+        condition: service_healthy
 
   front:
     container_name: front
@@ -32,10 +39,16 @@ services:
     image: front
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://front:3003"]
-      interval: 2s
+      test: [ "CMD", "curl", "-f", "http://front:3003" ]
+      interval: 10s
       timeout: 5s
-      retries: 2
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     env_file:
       - .env
     networks:
@@ -55,11 +68,16 @@ services:
     volumes:
       - ./prisma:/app/prisma
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://auth:3004/api/auth"]
-      interval: 2s
+      test: [ "CMD", "curl", "-f", "http://auth:3004/api/auth" ]
+      interval: 10s
       timeout: 5s
-      retries: 2
-      # start_period: 30s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     env_file:
       - .env
     environment:
@@ -80,16 +98,27 @@ services:
     ports:
       - "${CHAT_SERVICE_PORT}:${CHAT_SERVICE_PORT}"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://chat:3001/api/chat"]
-      interval: 2s
+      test: [ "CMD", "curl", "-f", "http://chat:3001/api/chat" ]
+      interval: 10s
       timeout: 5s
-      retries: 2
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     env_file:
       - .env
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@postgres_db:5432/shared_db?schema=public
     networks:
       - microservices_network
     volumes:
       - ./prisma:/app/prisma
+    depends_on:
+      postgres:
+        condition: service_healthy
   user:
     container_name: user
     build:
@@ -101,16 +130,28 @@ services:
     ports:
       - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://user:3002/api/users"]
-      interval: 2s
+      # NOTE: The backend registers prefix "api/users" (with 's')
+      test: [ "CMD", "curl", "-f", "http://user:3002/api/users" ]
+      interval: 10s
       timeout: 5s
-      retries: 2
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     env_file:
       - .env
     networks:
       - microservices_network
     volumes:
       - ./prisma:/app/prisma
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@postgres_db:5432/shared_db?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
       - ./uploads:/app/uploads
   listings:
     container_name: listings
@@ -123,14 +164,28 @@ services:
     ports:
       - "${LISTINGS_SERVICE_PORT}:${LISTINGS_SERVICE_PORT}"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://listings:3005/api/listings"]
-      interval: 2s
+      test: [ "CMD", "curl", "-f", "http://listings:3005/api/listings" ]
+      interval: 10s
       timeout: 5s
-      retries: 2
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    volumes:
+      - ./prisma:/app/prisma
     env_file:
       - .env
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@postgres_db:5432/shared_db?schema=public
     networks:
       - microservices_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
     volumes:
       - ./prisma:/app/prisma
       - ./uploads:/app/uploads
@@ -139,24 +194,32 @@ services:
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     container_name: postgres_db
     restart: unless-stopped
-    # ports:
-    #   - "${POSTGRES_PORT}:5432"
+    ports:
+      - "${POSTGRES_PORT}:5432"
     volumes:
       - ./infrastructure/postgres/init/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
-      # - postgres_data:/var/lib/postgresql/data
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${DB_USER}"]
-      interval: 2s
+      test: [ "CMD", "pg_isready", "-U", "${DB_USER}" ]
+      interval: 10s
       timeout: 5s
-      retries: 2
-      # start_period: 30s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: ${DB_NAME}
     networks:
       - microservices_network
+
+
+
+  
   # elasticsearch:
   #   image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION}
   #   container_name: elasticsearch

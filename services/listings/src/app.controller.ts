@@ -14,8 +14,8 @@ export class AppController {
     // Health check endpoint
     @Get()
     @ApiOperation({ summary: 'Health check' })
-    getHello(): string {
-        return this.appService.getHello();
+    getHealthCheck() {
+        return this.appService.getHealthCheck();
     }
     // Create new listing
     @UseGuards(JwtAuthGuard)
