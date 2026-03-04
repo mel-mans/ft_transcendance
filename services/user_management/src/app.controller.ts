@@ -1,11 +1,13 @@
-import { Controller, Get, UseGuards, Req, ParseIntPipe, Param, Patch, Body, Post } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, ParseIntPipe, Param, Patch, Body, Post, UseInterceptors, UploadedFile, Delete } from '@nestjs/common';
 import { Request } from 'express';
 import { AppService } from './app.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';  // ← ADD THIS
-import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth, ApiParam } from '@nestjs/swagger';  // ← ADD
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth, ApiParam, ApiConsumes } from '@nestjs/swagger';  // ← ADD
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerConfig } from './config/multer.config';
 
 @ApiTags('User Management')  // ← ADD
 @Controller()
@@ -205,5 +207,43 @@ export class AppController {
     ) {
         const userId = req.user.userId;
         return this.appService.completeProfile(userId, completeProfileDto);
+    }
+
+    // ========== UPLOAD AVATAR ==========
+    @UseGuards(JwtAuthGuard)
+    @Post('avatar')
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Upload profile avatar' })
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                file: {
+                    type: 'string',
+                    format: 'binary',
+                },
+            },
+        },
+    })
+    @ApiResponse({ status: 200, description: 'Avatar uploaded successfully' })
+    @ApiResponse({ status: 400, description: 'Invalid file type or size' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @UseInterceptors(FileInterceptor('file', multerConfig))
+    async uploadAvatar(@Req() req: Request, @UploadedFile() file: Express.Multer.File) {
+        const userId = req.user.userId;
+        return this.appService.uploadAvatar(userId, file);
+    }
+
+    // ========== DELETE AVATAR ==========
+    @UseGuards(JwtAuthGuard)
+    @Delete('avatar')
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Delete avatar (reset to default)' })
+    @ApiResponse({ status: 200, description: 'Avatar deleted successfully' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    async deleteAvatar(@Req() req: Request) {
+        const userId = req.user.userId;
+        return this.appService.deleteAvatar(userId);
     }
 }
