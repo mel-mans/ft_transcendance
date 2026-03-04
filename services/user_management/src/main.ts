@@ -2,10 +2,13 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';  // ← ADD
+import { NestExpressApplication } from '@nestjs/platform-express';  // ← ADD
+import { join } from 'path';  // ← ADD
+
 
 async function bootstrap() {
     const port = process.env.USER_SERVICE_PORT || 3005;
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create<NestExpressApplication>(AppModule);
     
     // ========== ENABLE CORS ==========
     app.enableCors({
@@ -22,6 +25,13 @@ async function bootstrap() {
         preflightContinue: false,
         optionsSuccessStatus: 204,
     });
+
+    // ========== SERVE STATIC FILES ==========
+    app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+        prefix: '/uploads/',
+    });
+    // =========================================
+
     // Enable validation
     app.useGlobalPipes(new ValidationPipe({
         whitelist: true,

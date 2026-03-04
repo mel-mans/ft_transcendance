@@ -1,9 +1,11 @@
-import { Injectable , NotFoundException, ConflictException, UnauthorizedException } from '@nestjs/common';
+import { Injectable , NotFoundException, ConflictException, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import * as bcrypt from 'bcrypt';
-import { CompleteProfileDto } from './dto/complete-profile.dto';  // ← ADD THIS
+import { CompleteProfileDto } from './dto/complete-profile.dto';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class AppService {
@@ -255,6 +257,79 @@ export class AppService {
 
         return {
             message: 'Profile completed successfully',
+            user: userWithoutPassword,
+        };
+    }
+
+    // ========== UPLOAD AVATAR ==========
+    async uploadAvatar(userId: number, file: Express.Multer.File) {
+        if (!file) {
+            throw new BadRequestException('No file provided');
+        }
+
+        // Get user to check for old avatar
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        // Delete old avatar if it's not the default
+        if (user.avatar && user.avatar !== 'default-avatar.png') {
+            const oldAvatarPath = path.join('./uploads/avatars', path.basename(user.avatar));
+            if (fs.existsSync(oldAvatarPath)) {
+                fs.unlinkSync(oldAvatarPath);
+            }
+        }
+
+        // Generate avatar URL
+        const avatarUrl = `/uploads/avatars/${file.filename}`;
+
+        // Update user avatar in database
+        const updatedUser = await this.prisma.user.update({
+            where: { id: userId },
+            data: { avatar: avatarUrl },
+        });
+
+        const { password: _, ...userWithoutPassword } = updatedUser;
+
+        return {
+            message: 'Avatar uploaded successfully',
+            avatar: avatarUrl,
+            user: userWithoutPassword,
+        };
+    }
+
+    // ========== DELETE AVATAR ==========
+    async deleteAvatar(userId: number) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        // Delete file if it's not the default
+        if (user.avatar && user.avatar !== 'default-avatar.png') {
+            const avatarPath = path.join('./uploads/avatars', path.basename(user.avatar));
+            if (fs.existsSync(avatarPath)) {
+                fs.unlinkSync(avatarPath);
+            }
+        }
+
+        // Reset to default avatar
+        const updatedUser = await this.prisma.user.update({
+            where: { id: userId },
+            data: { avatar: 'default-avatar.png' },
+        });
+
+        const { password: _, ...userWithoutPassword } = updatedUser;
+
+        return {
+            message: 'Avatar deleted successfully',
             user: userWithoutPassword,
         };
     }

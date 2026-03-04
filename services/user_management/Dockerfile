@@ -21,11 +21,16 @@ RUN apt-get update && apt-get install -y curl openssl && \
     useradd -m devops_user && \
     rm -rf /var/lib/apt/lists/*
 
+
+RUN mkdir -p /app/uploads/avatars
+
 # We ONLY copy the specific artifacts we need from the builder
 COPY --chown=devops_user:devops_user --from=builder /app/dist ./dist
 COPY --chown=devops_user:devops_user --from=builder /app/node_modules ./node_modules
 COPY --chown=devops_user:devops_user --from=builder /app/package.json ./package.json
 COPY --chown=devops_user:devops_user --from=builder /app/prisma ./prisma
+
+RUN chown -R devops_user:devops_user /app/uploads
 
 USER devops_user
 
