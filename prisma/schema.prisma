@@ -33,6 +33,10 @@ model User {
   // Relations
   preferences       UserPreferences?
   listings          Listing[]
+  // for chat
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  
   
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -112,4 +116,22 @@ model Listing {
   @@index([price])
   @@index([availableDate])
   @@index([isActive])
+}
+
+// Messaging model (NEW)
+model Message {
+  id         Int      @id @default(autoincrement())
+  content    String
+  isRead     Boolean  @default(false)
+  
+  // Relations
+  senderId   Int
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  
+  receiverId Int
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  
+  // Timestamps
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
