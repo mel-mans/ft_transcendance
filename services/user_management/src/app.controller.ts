@@ -9,6 +9,8 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth, ApiParam, A
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerConfig } from './config/multer.config';
 
+
+
 @ApiTags('User Management')  // ← ADD
 @Controller()
 export class AppController {
@@ -59,7 +61,7 @@ export class AppController {
     })
     @ApiResponse({ status: 401, description: 'Unauthorized' })
     @ApiResponse({ status: 404, description: 'User not found' })
-    async getMe(@Req() req: Request) {
+    async getMe(@Req() req: any) {
         const userId = req.user.userId;
         return this.appService.getMe(userId);
     }
@@ -118,7 +120,7 @@ export class AppController {
     @ApiResponse({ status: 401, description: 'Unauthorized' })
     @ApiResponse({ status: 409, description: 'Username already taken' })
     async updateProfile(
-        @Req() req: Request,
+        @Req() req: any,
         @Body() updateProfileDto: UpdateProfileDto,
     ) {
         const userId = req.user.userId;
@@ -148,7 +150,7 @@ export class AppController {
     @ApiResponse({ status: 401, description: 'Unauthorized' })
     @ApiResponse({ status: 409, description: 'Username already taken' })
     async changePassword(
-        @Req() req: Request,
+        @Req() req: any,
         @Body() changePasswordDto: ChangePasswordDto,
     ) {
         const userId = req.user.userId;
@@ -202,7 +204,7 @@ export class AppController {
     @ApiResponse({ status: 401, description: 'Unauthorized' })
     @ApiResponse({ status: 409, description: 'Username already taken' })
     async completeProfile(
-        @Req() req: Request,
+        @Req() req: any,
         @Body() completeProfileDto: CompleteProfileDto,
     ) {
         const userId = req.user.userId;
@@ -230,7 +232,7 @@ export class AppController {
     @ApiResponse({ status: 400, description: 'Invalid file type or size' })
     @ApiResponse({ status: 401, description: 'Unauthorized' })
     @UseInterceptors(FileInterceptor('file', multerConfig))
-    async uploadAvatar(@Req() req: Request, @UploadedFile() file: Express.Multer.File) {
+    async uploadAvatar(@Req() req: any, @UploadedFile() file: Express.Multer.File) {
         const userId = req.user.userId;
         return this.appService.uploadAvatar(userId, file);
     }
@@ -242,7 +244,7 @@ export class AppController {
     @ApiOperation({ summary: 'Delete avatar (reset to default)' })
     @ApiResponse({ status: 200, description: 'Avatar deleted successfully' })
     @ApiResponse({ status: 401, description: 'Unauthorized' })
-    async deleteAvatar(@Req() req: Request) {
+    async deleteAvatar(@Req() req: any) {
         const userId = req.user.userId;
         return this.appService.deleteAvatar(userId);
     }
