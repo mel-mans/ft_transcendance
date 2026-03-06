@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
     root: `${API_PREFIXES.auth}/`,
     signup: `${API_PREFIXES.auth}/signup`,
     login: `${API_PREFIXES.auth}/login`,
+    logout: `${API_PREFIXES.auth}/logout`,
     profile: `${API_PREFIXES.auth}/profile`,
     google: `${API_PREFIXES.auth}/google`,
     intra42: `${API_PREFIXES.auth}/42`,

@@ -2,24 +2,6 @@ import axios from "axios";
 import type { AxiosInstance, AxiosRequestConfig } from "axios";
 import API from "./apiEndpoints";
 
-export const AUTH_TOKEN_KEY = "auth_token";
-
-/* ================================
-   TOKEN HELPERS
-================================ */
-
-export function setAuthToken(token: string | null) {
-  if (!token) {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-  } else {
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
-  }
-}
-
-export function getAuthToken(): string | null {
-  return localStorage.getItem(AUTH_TOKEN_KEY);
-}
-
 /* ================================
    AXIOS INSTANCE
 ================================ */
@@ -76,21 +58,8 @@ const axiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 }) as ApiClient;
-
-/* ================================
-   REQUEST INTERCEPTOR
-================================ */
-
-axiosInstance.interceptors.request.use((config) => {
-  const token = getAuthToken();
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
 
 /* ================================
    RESPONSE INTERCEPTOR
@@ -104,13 +73,6 @@ axiosInstance.interceptors.response.use(
         error.response.data?.message ||
         error.response.data?.error ||
         error.message;
-
-      // Auto logout on 401 only when a token exists.
-      // This prevents redirect loops for guest pages that probe protected endpoints.
-      if (error.response.status === 401 && getAuthToken()) {
-        setAuthToken(null);
-        window.location.href = "/login";
-      }
 
       const err: any = new Error(message);
       err.status = error.response.status;
@@ -135,13 +97,19 @@ export async function login(credentials: {
 }) {
   return axiosInstance.post<{
     message: string;
-    access_token: string;
     user: any;
   }>(API.auth.login, credentials);
 }
 
 export async function signup(payload: Record<string, any>) {
-  return axiosInstance.post(API.auth.signup, payload);
+  return axiosInstance.post<{
+    message: string;
+    user: any;
+  }>(API.auth.signup, payload);
+}
+
+export async function logout() {
+  return axiosInstance.post<{ message: string }>(API.auth.logout);
 }
 
 export async function fetchCurrentUser() {
@@ -192,11 +160,9 @@ export async function completeUserProfile(payload: CompleteProfilePayload) {
 export default {
   login,
   signup,
-  setAuthToken,
-  getAuthToken,
+  logout,
   fetchCurrentUser,
   completeUserProfile,
-  clearAuth: () => setAuthToken(null),
 };
 
 export const api = axiosInstance;

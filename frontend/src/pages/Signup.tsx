@@ -75,7 +75,7 @@ const Signup = () => {
                 <Link
                   to="/"
                   aria-label="Go to home page"
-                  className="w-[3.25rem] h-[3.25rem] rounded-2xl bg-[#37e07a] flex items-center justify-center font-bold text-base sm:text-lg text-black hover:bg-[#2fd46f] transition-colors"
+                  className="w-[3.25rem] h-[3.25rem] rounded-2xl bg-[#37e07a] flex items-center justify-center font-bold text-base sm:text-lg text-black hover:bg-[#2fd46f] hover:glow-primary transition-all duration-300"
                 >
                   42
                 </Link>

@@ -11,7 +11,6 @@ import {
   UserPreferences,
   getCurrentUser,
   getMatchedProfiles,
-  saveProfile,
   setCurrentUser as storeCurrentUser,
 } from "@/lib/matching";
 import api from '@/lib/api';
@@ -31,80 +30,6 @@ import { Link, useNavigate } from "react-router-dom";
 import ProfileSetupForm from "@/components/ProfileSetupForm";
 import CreateListingForm from "@/components/CreateListingForm";
 import { useAuth } from "@/lib/auth";
-
-// Same sample profiles used in Matches
-const sampleProfiles: UserProfile[] = [
-  {
-    id: "sample1",
-    username: "alex42",
-    name: "Alex",
-    sex: "male",
-    age: 24,
-    location: "Paris 13e",
-    bio: "42 student in my second year. Love coding late nights but always respect quiet hours.",
-    avatar:
-      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop",
-    moveInDate: "Feb 2026",
-    budget: "€600-800/mo",
-    preferences: { smoking: false, quietHours: true, earlyBird: false, nightOwl: true, petsOk: true, cooking: false, gaming: true, social: false, studious: false, clean: true },
-  },
-  {
-    id: "sample2",
-    username: "sofia42",
-    name: "Sofia",
-    sex: "female",
-    age: 22,
-    location: "Paris 14e",
-    bio: "New to 42, excited to meet people! Early bird who enjoys cooking.",
-    avatar:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop",
-    moveInDate: "Mar 2026",
-    budget: "€500-700/mo",
-    preferences: { smoking: false, quietHours: true, earlyBird: true, nightOwl: false, petsOk: false, cooking: true, gaming: false, social: false, studious: true, clean: true },
-  },
-  {
-    id: "sample3",
-    username: "marcus42",
-    name: "Marcus",
-    sex: "male",
-    age: 26,
-    location: "Paris 15e",
-    bio: "Third year at 42. Remote work sometimes, love weekend hangouts!",
-    avatar:
-      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop",
-    moveInDate: "Feb 2026",
-    budget: "€700-900/mo",
-    preferences: { smoking: true, quietHours: true, earlyBird: false, nightOwl: false, petsOk: true, cooking: true, gaming: true, social: true, studious: false, clean: true },
-  },
-  {
-    id: "sample4",
-    username: "luna42",
-    name: "Luna",
-    sex: "female",
-    age: 23,
-    location: "Paris 12e",
-    bio: "First year at 42, love music and yoga. Looking for peaceful living.",
-    avatar:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop",
-    moveInDate: "Apr 2026",
-    budget: "€550-750/mo",
-    preferences: { smoking: false, quietHours: true, earlyBird: true, nightOwl: false, petsOk: true, cooking: true, gaming: false, social: false, studious: true, clean: true },
-  },
-  {
-    id: "sample5",
-    username: "theo42",
-    name: "Theo",
-    sex: "male",
-    age: 25,
-    location: "Paris 11e",
-    bio: "Night coder, coffee addict, and I make a mean pasta!",
-    avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop",
-    moveInDate: "Feb 2026",
-    budget: "€600-850/mo",
-    preferences: { smoking: false, quietHours: false, earlyBird: false, nightOwl: true, petsOk: true, cooking: true, gaming: true, social: true, studious: false, clean: false },
-  },
-];
 
 const preferenceEmojiMap: Record<string, { emoji: string; label: string }> = {
   smoking: { emoji: "🚬", label: "Smoker" },
@@ -211,9 +136,6 @@ const Profile = () => {
   const [myListings, setMyListings] = useState<Array<{ title: string; location: string; price: string; currency: string; availableDate: string; roommatesWanted: number; roommatesFound: number; amenities: string[]; images: string[]; description: string }>>([]);
 
   useEffect(() => {
-    // Load local sample profiles
-    sampleProfiles.forEach(saveProfile);
-
     (async () => {
       const localUser = normalizeUserProfile(getCurrentUser());
 
@@ -264,14 +186,14 @@ const Profile = () => {
     setMatches(matched);
   };
 
-  const handleLogoutClick = () => {
+  const handleLogoutClick = async () => {
     if (!logoutArmed) {
       setLogoutArmed(true);
       return;
     }
 
     localStorage.removeItem("42roommates_current_user");
-    logout();
+    await logout();
     navigate("/login");
   };
 

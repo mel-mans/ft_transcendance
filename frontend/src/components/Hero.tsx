@@ -128,10 +128,10 @@ const Hero = () => {
               <Button 
                 size="lg" 
                 onClick={() => navigate("/signup")}
-                className="gap-2 w-full sm:w-auto bg-primary/60 hover:bg-primary text-black hover:text-black border-black hover:border-black font-semibold tracking-wide [text-shadow:0_1px_2px_rgba(0,0,0,0.85)] px-8 rounded-full glow-primary"
+                className="group w-full sm:w-auto bg-primary hover:bg-black text-black hover:text-primary border-black hover:border-black font-semibold px-8 rounded-full glow-primary"
               >
                 Get Started
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
               </Button>
               <Button 
                 size="lg" 

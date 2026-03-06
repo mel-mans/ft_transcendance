@@ -29,10 +29,10 @@ const CTA = () => {
             <Button 
               size="lg" 
               onClick={() => navigate("/signup")}
-              className="gap-2 bg-primary hover:bg-black text-black hover:text-primary font-semibold px-8 rounded-full glow-primary"
+              className="group gap-2 bg-primary hover:bg-black text-black hover:text-primary font-semibold px-8 rounded-full glow-primary"
             >
               Connect with 42 Intra
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Button>
           </div>
         </div>

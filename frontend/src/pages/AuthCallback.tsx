@@ -16,16 +16,16 @@ const AuthCallback = () => {
     }
     handledRef.current = true;
 
-    const token = searchParams.get("token");
+    const success = searchParams.get("success");
 
-    if (!token) {
-      setError("Missing OAuth token in callback URL.");
+    if (success !== "true") {
+      setError("OAuth login was not completed.");
       return;
     }
 
     (async () => {
       try {
-        await completeOAuthLogin(token);
+        await completeOAuthLogin();
         navigate("/profile", { replace: true });
       } catch (err: any) {
         setError(err?.message || "OAuth login failed.");

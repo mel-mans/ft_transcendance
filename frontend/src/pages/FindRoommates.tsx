@@ -4,6 +4,9 @@ import Footer from "@/components/Footer";
 import UserProfileCard from "@/components/UserProfileCard";
 import ChatPopup from "@/components/ChatPopup";
 import PageLayout from "@/components/PageLayout";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/lib/auth";
 
 const exampleUsers = [
   {
@@ -60,6 +63,9 @@ const exampleUsers = [
 const FindRoommates = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatUser, setChatUser] = useState<{ name: string; avatar: string } | null>(null);
+  const { user } = useAuth();
+  const isLoggedIn = Boolean(user);
+  const visibleUsers = isLoggedIn ? [] : exampleUsers.slice(0, 2);
 
   const handleChatClick = (user: { name: string; avatar: string }) => {
     setChatUser(user);
@@ -82,15 +88,35 @@ const FindRoommates = () => {
           </div>
 
           {/* User Cards */}
-          <div className="space-y-4">
-            {exampleUsers.map((user, index) => (
-              <UserProfileCard 
-                key={index} 
-                user={user} 
-                onChatClick={handleChatClick}
-              />
-            ))}
-          </div>
+          {visibleUsers.length > 0 ? (
+            <div className="space-y-4">
+              {visibleUsers.map((user, index) => (
+                <UserProfileCard
+                  key={index}
+                  user={user}
+                  onChatClick={handleChatClick}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="glass rounded-2xl p-8 text-center">
+              <p className="text-muted-foreground">
+                No roommate profiles available right now.
+              </p>
+            </div>
+          )}
+
+          {!isLoggedIn && (
+            <div className="glass rounded-2xl p-6 sm:p-8 text-center mt-6">
+              <h2 className="text-xl font-bold mb-2">Log in to See More</h2>
+              <p className="text-muted-foreground mb-5">
+                Sign in to unlock the full roommate directory and start chatting.
+              </p>
+              <Button asChild>
+                <Link to="/login">Go to Login</Link>
+              </Button>
+            </div>
+          )}
         </div>
       </main>
       <Footer />

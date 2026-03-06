@@ -41,7 +41,7 @@ export class AppController {
     })
     @ApiResponse({ status: 409, description: 'Email already exists' })
     @ApiResponse({ status: 400, description: 'Validation failed' })
-    async signup(@Body() signupDto: SignupDto, @Res() res: Response) {
+    async signup(@Body() signupDto: SignupDto, @Res({ passthrough: true }) res: Response) {
         const result = await this.appService.signup(signupDto);
 
         // Set HTTP-Only Cookie

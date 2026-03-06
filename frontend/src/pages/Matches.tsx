@@ -10,124 +10,9 @@ import {
   UserProfile,
   getCurrentUser,
   getMatchedProfiles,
-  saveProfile,
 } from "@/lib/matching";
 import { useAuth } from '@/lib/auth';
 import { Settings, Sparkles } from "lucide-react";
-
-// Sample profiles for demo
-const sampleProfiles: UserProfile[] = [
-  {
-    id: "sample1",
-    name: "Alex",
-    age: 24,
-    location: "Paris 13e",
-    bio: "42 student in my second year. Love coding late nights but always respect quiet hours. Looking for a chill roommate who's okay with occasional gaming sessions!",
-    avatar: "/public/mrrobot.jpg",
-    moveInDate: "Feb 2026",
-    budget: "€600-800/mo",
-    preferences: {
-      smoking: false,
-      quietHours: true,
-      earlyBird: false,
-      nightOwl: true,
-      petsOk: true,
-      cooking: false,
-      gaming: true,
-      social: false,
-      studious: false,
-      clean: true,
-    },
-  },
-  {
-    id: "sample2",
-    name: "Sofia",
-    age: 22,
-    location: "Paris 14e",
-    bio: "New to 42, excited to meet people! I'm an early bird who enjoys cooking and keeping shared spaces tidy. Open to sharing meals!",
-    avatar: "/public/mrrobot.jpg",
-    moveInDate: "Mar 2026",
-    budget: "€500-700/mo",
-    preferences: {
-      smoking: false,
-      quietHours: true,
-      earlyBird: true,
-      nightOwl: false,
-      petsOk: false,
-      cooking: true,
-      gaming: false,
-      social: false,
-      studious: true,
-      clean: true,
-    },
-  },
-  {
-    id: "sample3",
-    name: "Marcus",
-    age: 26,
-    location: "Paris 15e",
-    bio: "Third year at 42. I work remote sometimes so need a quiet space during the day. Love weekend hangouts and board games!",
-    avatar: "/public/mrrobot.jpg",
-    moveInDate: "Feb 2026",
-    budget: "€700-900/mo",
-    preferences: {
-      smoking: true,
-      quietHours: true,
-      earlyBird: false,
-      nightOwl: false,
-      petsOk: true,
-      cooking: true,
-      gaming: true,
-      social: true,
-      studious: false,
-      clean: true,
-    },
-  },
-  {
-    id: "sample4",
-    name: "Luna",
-    age: 23,
-    location: "Paris 12e",
-    bio: "First year at 42, love music and yoga. Looking for a peaceful living environment with like-minded people.",
-    avatar: "/public/mrrobot.jpg",
-    moveInDate: "Apr 2026",
-    budget: "€550-750/mo",
-    preferences: {
-      smoking: false,
-      quietHours: true,
-      earlyBird: true,
-      nightOwl: false,
-      petsOk: true,
-      cooking: true,
-      gaming: false,
-      social: false,
-      studious: true,
-      clean: true,
-    },
-  },
-  {
-    id: "sample5",
-    name: "Theo",
-    age: 25,
-    location: "Paris 11e",
-    bio: "Second year dev at 42. Night coder, coffee addict, and I make a mean pasta. Always down for a movie night!",
-    avatar: "/public/mrrobot.jpg",
-    moveInDate: "Feb 2026",
-    budget: "€600-850/mo",
-    preferences: {
-      smoking: false,
-      quietHours: false,
-      earlyBird: false,
-      nightOwl: true,
-      petsOk: true,
-      cooking: true,
-      gaming: true,
-      social: true,
-      studious: false,
-      clean: false,
-    },
-  },
-];
 
 const Matches = () => {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
@@ -174,9 +59,6 @@ const Matches = () => {
   };
 
   useEffect(() => {
-    // Save sample profiles if they don't exist
-    sampleProfiles.forEach(saveProfile);
-
     const authNormalizedUser = normalizeUserProfile(authUser);
     const localUser = normalizeUserProfile(getCurrentUser());
     const user = authNormalizedUser || localUser;

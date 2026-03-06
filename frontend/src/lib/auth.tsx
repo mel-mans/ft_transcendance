@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { api } from "@/lib/api"; // axios instance
-import { setAuthToken, getAuthToken } from "@/lib/api";
 import API from "@/lib/apiEndpoints";
 
 interface AuthContextType {
@@ -9,8 +8,8 @@ interface AuthContextType {
   login: (identifier: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
   startOAuth: (provider: "google" | "42") => void;
-  completeOAuthLogin: (token: string) => Promise<void>;
-  logout: () => void;
+  completeOAuthLogin: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -19,15 +18,10 @@ export function AuthProvider({ children }: any) {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const token = getAuthToken();
-    if (token) {
-      api.get(API.users.me)
-        .then(setUser)
-        .catch(() => {
-          setAuthToken(null);
-          setUser(null);
-        });
-    }
+    api
+      .get(API.users.me)
+      .then(setUser)
+      .catch(() => setUser(null));
   }, []);
 
   const login = async (identifier: string, password: string) => {
@@ -36,16 +30,15 @@ export function AuthProvider({ children }: any) {
       password,
     });
 
-    setAuthToken(res.access_token);
     setUser(res.user);
   };
 
   const signup = async (email: string, password: string) => {
-    await api.post(API.auth.signup, {
+    const res = await api.post(API.auth.signup, {
       email: email.trim(),
       password,
     });
-    await login(email, password);
+    setUser(res.user);
   };
 
   const getAuthBaseUrl = () => {
@@ -71,9 +64,7 @@ export function AuthProvider({ children }: any) {
     window.location.assign(redirectUrl);
   };
 
-  const completeOAuthLogin = async (token: string) => {
-    setAuthToken(token);
-
+  const completeOAuthLogin = async () => {
     try {
       const me = await api.get(API.users.me);
       setUser(me);
@@ -84,8 +75,8 @@ export function AuthProvider({ children }: any) {
     }
   };
 
-  const logout = () => {
-    setAuthToken(null);
+  const logout = async () => {
+    await api.post(API.auth.logout);
     setUser(null);
   };
 

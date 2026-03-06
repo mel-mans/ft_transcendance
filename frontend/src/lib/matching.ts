@@ -72,6 +72,7 @@ const normalizeProfile = (profile: any): UserProfile | null => {
 
 const STORAGE_KEY = "42roommates_profiles";
 const CURRENT_USER_KEY = "42roommates_current_user";
+const DEMO_PROFILE_ID_PREFIX = "sample";
 
 // Get all stored profiles
 export const getProfiles = (): UserProfile[] => {
@@ -83,7 +84,12 @@ export const getProfiles = (): UserProfile[] => {
     if (!Array.isArray(parsed)) return [];
     return parsed
       .map(normalizeProfile)
-      .filter((profile): profile is UserProfile => profile !== null && Boolean(profile.id));
+      .filter(
+        (profile): profile is UserProfile =>
+          profile !== null &&
+          Boolean(profile.id) &&
+          !profile.id.startsWith(DEMO_PROFILE_ID_PREFIX)
+      );
   } catch {
     return [];
   }

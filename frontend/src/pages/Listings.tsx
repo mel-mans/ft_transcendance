@@ -2,6 +2,9 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ListingCard from "@/components/ListingCard";
 import PageLayout from "@/components/PageLayout";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/lib/auth";
 
 const exampleListings = [
   {
@@ -74,6 +77,10 @@ const exampleListings = [
 ];
 
 const Listings = () => {
+  const { user } = useAuth();
+  const isLoggedIn = Boolean(user);
+  const visibleListings = isLoggedIn ? [] : exampleListings.slice(0, 2);
+
   return (
     <PageLayout>
       <Navbar />
@@ -90,11 +97,31 @@ const Listings = () => {
           </div>
 
           {/* Listing Cards */}
-          <div className="space-y-6">
-            {exampleListings.map((listing, index) => (
-              <ListingCard key={index} listing={listing} />
-            ))}
-          </div>
+          {visibleListings.length > 0 ? (
+            <div className="space-y-6">
+              {visibleListings.map((listing, index) => (
+                <ListingCard key={index} listing={listing} />
+              ))}
+            </div>
+          ) : (
+            <div className="glass rounded-2xl p-8 text-center">
+              <p className="text-muted-foreground">
+                No listings available right now.
+              </p>
+            </div>
+          )}
+
+          {!isLoggedIn && (
+            <div className="glass rounded-2xl p-6 sm:p-8 text-center mt-6">
+              <h2 className="text-xl font-bold mb-2">Log in to See More</h2>
+              <p className="text-muted-foreground mb-5">
+                Sign in to unlock all listings and contact apartment owners.
+              </p>
+              <Button asChild>
+                <Link to="/login">Go to Login</Link>
+              </Button>
+            </div>
+          )}
         </div>
       </main>
       <Footer />
