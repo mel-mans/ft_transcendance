@@ -175,11 +175,10 @@ export class AppController {
             });
 
             // Redirect to frontend with success + token (fallback when cookies are blocked cross-origin)
-            const token = encodeURIComponent(result.access_token);
-            res.redirect(`${process.env.FRONTEND_URL}/auth/callback?success=true&token=${token}`);
+            res.redirect(`${process.env.APP_URL}/auth/callback?success=true`);
         } catch (error) {
             console.error('42 OAuth error:', error);
-            res.redirect(`${process.env.FRONTEND_URL}/auth/error`);
+            res.redirect(`${process.env.APP_URL}/auth/error`);
         }
     }
    // ========== GOOGLE OAUTH ENDPOINTS ========== (ADD THESE)
@@ -215,11 +214,10 @@ export class AppController {
             });
 
             // Redirect to frontend with success + token (fallback when cookies are blocked cross-origin)
-            const token = encodeURIComponent(result.access_token);
-            res.redirect(`${process.env.FRONTEND_URL}/auth/callback?success=true&token=${token}`);
+            res.redirect(`${process.env.APP_URL}/auth/callback?success=true`);
         } catch (error) {
             console.error('Google OAuth error:', error);
-            res.redirect(`${process.env.FRONTEND_URL}/auth/error`);
+            res.redirect(`${process.env.APP_URL}/auth/error`);
         }
     }
 

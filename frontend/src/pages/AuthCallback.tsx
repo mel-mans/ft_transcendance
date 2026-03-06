@@ -17,8 +17,16 @@ const AuthCallback = () => {
     handledRef.current = true;
 
     const success = searchParams.get("success");
+    const errorParam = searchParams.get("error");
 
-    if (success !== "true") {
+    if (errorParam) {
+      setError("OAuth login was not completed.");
+      return;
+    }
+
+    // Cookie-based sessions do not need ?success=true to be present.
+    // If no explicit error exists, validate session via backend and continue.
+    if (success === "false") {
       setError("OAuth login was not completed.");
       return;
     }

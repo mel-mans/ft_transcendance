@@ -30,6 +30,7 @@ const App = () => (
           <Route path="/listings" element={<Listings />} />
           <Route path="/login" element={<Login />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/auth/error" element={<AuthCallback />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/signup" element={<Signup />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
