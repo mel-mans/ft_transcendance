@@ -83,6 +83,13 @@ const Hero = () => {
   const getStartedGlitch = useGlitch({
     playMode: "hover",
   });
+  const previewGlitch = useGlitch({
+    playMode: "manual",
+    timing: {
+      duration: 240,
+      iterations: 1,
+    },
+  });
 
   useEffect(() => {
     if (!api) return;
@@ -103,6 +110,18 @@ const Hero = () => {
       setCurrent(0);
     }
   }, [activeTab, api]);
+
+  useEffect(() => {
+    previewGlitch.startGlitch();
+    const timer = window.setTimeout(() => {
+      previewGlitch.stopGlitch();
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timer);
+      previewGlitch.stopGlitch();
+    };
+  }, [activeTab, current, previewGlitch.startGlitch, previewGlitch.stopGlitch]);
 
   return (
     <section className="min-h-screen flex flex-col items-center justify-center pt-28 sm:pt-32 pb-16 sm:pb-20 relative overflow-hidden">
@@ -153,7 +172,7 @@ const Hero = () => {
             {/* Floating glow effect */}
             <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 rounded-3xl blur-2xl opacity-50" />
             
-            <div className="relative">
+            <div className="relative" ref={previewGlitch.ref}>
               {/* Tab Switcher */}
               <div className="flex justify-center mb-4">
                 <div className="glass rounded-full p-1 flex gap-1">
