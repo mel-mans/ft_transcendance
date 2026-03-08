@@ -25,3 +25,6 @@ Thumbs.db
 
 # Git backup directories
 .git.backup.*
+
+/uploads/avatars/
+/uploads/listings/

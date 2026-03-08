@@ -31,20 +31,20 @@ const UserProfileCard = ({
 }: UserProfileCardProps) => {
   return (
     <div
-      className={`rounded-2xl p-6 hover:scale-[1.02] transition-all duration-300 ${
+      className={`rounded-2xl p-4 hover:scale-[1.02] transition-all duration-300 ${
         blackBackground ? "bg-black" : "glass"
       }`}
     >
       {/* Header */}
-      <div className="flex items-start gap-4 mb-4">
+      <div className="flex items-start gap-3 mb-3">
         <img 
           src={user.avatar} 
           alt={user.name}
-          className="w-16 h-16 rounded-xl object-cover"
+          className="w-12 h-12 rounded-xl object-cover"
         />
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-foreground">{user.name}, {user.age}</h3>
-          <div className="flex items-center gap-1 text-muted-foreground text-sm">
+          <h3 className="text-lg font-bold text-foreground">{user.name}, {user.age}</h3>
+          <div className="flex items-center gap-1 text-muted-foreground text-xs">
             <MapPin className="w-3 h-3" />
             <span>{user.location}</span>
           </div>
@@ -60,16 +60,16 @@ const UserProfileCard = ({
       </div>
 
       {/* Bio */}
-      <p className="text-muted-foreground text-sm mb-4 leading-relaxed">
+      <p className="text-muted-foreground text-sm mb-3 leading-relaxed max-h-12 overflow-hidden">
         {user.bio}
       </p>
 
       {/* Preferences */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex flex-wrap gap-1.5 mb-3">
         {user.preferences.map((pref, index) => (
           <span 
             key={index}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-xs"
           >
             <span>{pref.emoji}</span>
             <span className="text-muted-foreground">{pref.label}</span>
@@ -78,12 +78,12 @@ const UserProfileCard = ({
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-4 border-t border-white/10">
-        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+      <div className="flex items-center justify-between pt-3 border-t border-white/10">
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <Calendar className="w-3 h-3" />
           <span>{user.moveInDate}</span>
         </div>
-        <span className="text-primary font-semibold">{user.budget}</span>
+        <span className="text-primary text-sm font-semibold">{user.budget}</span>
       </div>
     </div>
   );
