@@ -1,9 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
-import { useState } from "react";
 import { useGlitch } from "react-powerglitch";
-import Autoplay from "embla-carousel-autoplay";
 import ListingCard from "@/components/ListingCard";
 import UserProfileCard from "@/components/UserProfileCard";
 import { useNavigate } from "react-router-dom";
@@ -83,8 +81,6 @@ const mixedCarouselItems = [
 
 const Hero = () => {
   const navigate = useNavigate();
-  const [current, setCurrent] = useState(0);
-  const [count, setCount] = useState(0);
   const getStartedGlitch = useGlitch({
     playMode: "hover",
   });
@@ -147,12 +143,7 @@ const Hero = () => {
               <Carousel
                 className="w-full"
                 opts={{ loop: true, align: "center" }}
-                plugins={[Autoplay({ delay: 3000, stopOnInteraction: false })]}
                 variant="cone-vertical"
-                activeIndex={current}
-                autoplayDelay={3000}
-                onSlideChange={setCurrent}
-                onSlideCountChange={setCount}
               >
                 <CarouselContent>
                   {mixedCarouselItems.map((item, index) => (
@@ -168,22 +159,6 @@ const Hero = () => {
                   ))}
                 </CarouselContent>
               </Carousel>
-
-              {/* Dot Indicators */}
-              <div className="flex justify-center gap-2 mt-4">
-                {Array.from({ length: count }).map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrent(index)}
-                    className={`transition-all duration-300 rounded-full ${
-                      index === current
-                        ? "w-6 h-2 bg-primary glow-primary"
-                        : "w-2 h-2 bg-white/20 hover:bg-white/40"
-                    }`}
-                    aria-label={`Go to slide ${index + 1}`}
-                  />
-                ))}
-              </div>
 
               {/* Decorative elements */}
               <div className="absolute -top-6 -right-6 w-12 h-12 rounded-full bg-primary/30 blur-xl" />

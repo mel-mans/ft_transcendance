@@ -249,57 +249,130 @@ Carousel.displayName = "Carousel";
 
 const CarouselContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, children, ...props }, ref) => {
-    const { carouselRef, orientation, variant, currentIndex, setSlideCount } = useCarousel();
+    const { carouselRef, orientation, variant, setSlideCount } = useCarousel();
     const items = React.Children.toArray(children);
+    const [rotation, setRotation] = React.useState(0);
+    const rotationRef = React.useRef(0);
+    const rafRef = React.useRef<number>(0);
+    const isDraggingRef = React.useRef(false);
+    const lastXRef = React.useRef(0);
+    const velocityRef = React.useRef(-0.05);
 
     React.useEffect(() => {
       setSlideCount(items.length);
     }, [items.length, setSlideCount]);
 
+    React.useEffect(() => {
+      rotationRef.current = rotation;
+    }, [rotation]);
+
+    React.useEffect(() => {
+      if (variant !== "cone-vertical") {
+        return;
+      }
+
+      const animate = () => {
+        if (!isDraggingRef.current) {
+          velocityRef.current *= 0.985;
+          if (Math.abs(velocityRef.current) < 0.005) {
+            velocityRef.current = -0.05;
+          }
+          const next = rotationRef.current + velocityRef.current;
+          rotationRef.current = next;
+          setRotation(next);
+        }
+        rafRef.current = window.requestAnimationFrame(animate);
+      };
+
+      rafRef.current = window.requestAnimationFrame(animate);
+      return () => window.cancelAnimationFrame(rafRef.current);
+    }, [variant]);
+
     if (variant === "cone-vertical") {
       const count = Math.max(items.length, 1);
-      const coneHeight = 160;
-      const baseRadius = 220;
-      const topTaper = 100;
+      const angleStep = 360 / count;
+      const baseRadius = 180;
+
+      const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+        isDraggingRef.current = true;
+        lastXRef.current = event.clientX;
+        velocityRef.current = 0;
+      };
+
+      const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+        if (!isDraggingRef.current) {
+          return;
+        }
+        const dx = event.clientX - lastXRef.current;
+        if (Math.abs(dx) < 2) {
+          return;
+        }
+        const delta = dx * 0.2;
+        const clampedVelocity = Math.max(-10, Math.min(10, delta * 0.25));
+        velocityRef.current = clampedVelocity;
+        const next = rotationRef.current + delta;
+        rotationRef.current = next;
+        setRotation(next);
+        lastXRef.current = event.clientX;
+      };
+
+      const handlePointerUp = () => {
+        isDraggingRef.current = false;
+      };
 
       return (
         <div ref={carouselRef} className="overflow-visible">
+          <div className="pointer-events-none absolute bottom-1 left-1/2 h-10 w-56 -translate-x-1/2 rounded-full bg-primary/25 blur-2xl" />
+          <div className="pointer-events-none absolute bottom-4 left-1/2 h-6 w-72 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
           <div
             ref={ref}
-            className={cn("relative h-[26rem] sm:h-[30rem] w-full [perspective:1600px]", className)}
+            className={cn(
+              "relative mx-auto h-[24rem] w-[340px] cursor-grab select-none active:cursor-grabbing sm:h-[26rem] sm:w-[380px] md:h-[28rem] md:w-[430px] [perspective:950px]",
+              className,
+            )}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerLeave={handlePointerUp}
             {...props}
           >
-            <div className="relative h-full w-full origin-center [transform-style:preserve-3d] [transform:rotateX(12deg)]">
+            <div
+              className="absolute inset-0 [transform-style:preserve-3d]"
+              style={{
+                transform: `rotateX(-12deg) rotateY(${rotation}deg)`,
+                transition: isDraggingRef.current ? "none" : undefined,
+              }}
+            >
               {items.map((child, index) => {
                 if (!React.isValidElement(child)) {
                   return child;
                 }
 
-                const relative = (index - currentIndex + count) % count;
-                const angle = (relative / count) * 360;
-                const heightProgress = count > 1 ? relative / (count - 1) : 0;
-                const y = coneHeight / 2 - heightProgress * coneHeight;
-                const radius = baseRadius - heightProgress * topTaper;
-                const scale = 1 - heightProgress * 0.3;
-                const opacity = 1 - heightProgress * 0.6;
-                const zIndex = count - relative;
+                const angle = index * angleStep;
+                const yOffset = -index * 8;
+                const itemRadius = baseRadius - index * 8;
+                const scale = 1 - index * 0.03;
                 const childStyle = (child.props as { style?: React.CSSProperties }).style;
 
                 return React.cloneElement(child as React.ReactElement, {
                   className: cn(
-                    "absolute left-1/2 top-1/2 w-full max-w-[18rem] sm:max-w-[19rem] -translate-x-1/2 -translate-y-1/2 transition-all duration-700 ease-out will-change-transform",
+                    "absolute left-1/2 top-1/2 w-full max-w-[10rem] sm:max-w-[11rem] md:max-w-[12rem] -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 ease-out will-change-transform [filter:drop-shadow(0_0_18px_rgba(34,197,94,0.24))]",
                     (child.props as { className?: string }).className,
                   ),
                   style: {
                     ...childStyle,
-                    transform: `translate(-50%, -50%) rotateY(${angle}deg) translateZ(${radius}px) translateY(${y}px) scale(${scale})`,
-                    opacity,
-                    zIndex,
+                    transform: `translate(-50%, -50%) rotateY(${angle}deg) translateZ(${itemRadius}px) translateY(${yOffset}px) scale(${scale})`,
                   },
-                  "aria-hidden": relative !== 0,
                 });
               })}
             </div>
+
+            <div
+              className="pointer-events-none absolute bottom-2 left-1/2 h-3 w-56 -translate-x-1/2 rounded-full opacity-40"
+              style={{
+                background: "radial-gradient(ellipse, hsl(var(--primary) / 0.4) 0%, transparent 70%)",
+              }}
+            />
           </div>
         </div>
       );

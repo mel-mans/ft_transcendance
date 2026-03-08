@@ -44,7 +44,7 @@ const ListingCard = ({
     >
       {/* Image */}
       <div
-        className={`relative aspect-[10/5] overflow-hidden ${
+        className={`relative aspect-[10/4] overflow-hidden ${
           insetImage ? "p-2 bg-black" : ""
         }`}
       >
@@ -71,16 +71,16 @@ const ListingCard = ({
       </div>
 
       {/* Content */}
-      <div className="p-5">
+      <div className="p-4">
         {/* Title & Location */}
-        <h3 className="text-lg font-bold text-foreground mb-1">{listing.title}</h3>
-        <div className="flex items-center gap-1 text-muted-foreground text-sm mb-3">
+        <h3 className="text-base font-bold text-foreground mb-1">{listing.title}</h3>
+        <div className="flex items-center gap-1 text-muted-foreground text-xs mb-2.5">
           <MapPin className="w-3 h-3" />
           <span>{listing.location}</span>
         </div>
 
         {/* Amenities */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap gap-1.5 mb-3">
           {listing.amenities.map((amenity, index) => (
             <span
               key={index}
@@ -93,7 +93,7 @@ const ListingCard = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-4 border-t border-white/10">
+        <div className="flex items-center justify-between pt-3 border-t border-white/10">
           {/* Posted by */}
           <div className="flex items-center gap-2">
             <img 
@@ -101,17 +101,17 @@ const ListingCard = ({
               alt={listing.postedBy}
               className="w-8 h-8 rounded-full object-cover"
             />
-            <span className="text-sm text-muted-foreground">{listing.postedBy}</span>
+            <span className="text-xs text-muted-foreground">{listing.postedBy}</span>
           </div>
           {/* Available date */}
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Calendar className="w-3 h-3" />
             <span>{listing.availableDate}</span>
           </div>
         </div>
 
         {/* Status message */}
-        <div className={`mt-4 text-center py-2 rounded-lg text-sm font-medium ${
+        <div className={`mt-3 text-center py-1.5 rounded-lg text-xs font-medium ${
           isFull 
             ? 'bg-destructive/10 text-destructive border border-destructive/20' 
             : 'bg-primary/10 text-primary border border-primary/20'
