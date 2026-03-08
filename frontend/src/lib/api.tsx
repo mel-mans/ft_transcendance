@@ -299,6 +299,10 @@ export async function fetchChatInbox() {
   return axiosInstance.get<ChatInboxItemDto[]>(API.chat.messages.inbox);
 }
 
+export async function markChatThreadRead(withUserId: number) {
+  return axiosInstance.post<{ updated: number }>(API.chat.messages.markRead(withUserId));
+}
+
 /* ================================
    EXPORT
 ================================ */
@@ -319,6 +323,7 @@ export default {
   deleteListing,
   uploadListingPhotos,
   fetchChatInbox,
+  markChatThreadRead,
   fetchChatMessages,
   sendChatMessage,
 };

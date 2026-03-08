@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Send, X, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +36,7 @@ const ChatPopup = ({ open, onClose, user }: ChatPopupProps) => {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [backendEnabled, setBackendEnabled] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messageEndRef = useRef<HTMLDivElement>(null);
   const openRef = useRef(open);
   const minimizedRef = useRef(minimized);
   const titleRef = useRef<string>(typeof document !== "undefined" ? document.title : "");
@@ -79,10 +80,12 @@ const ChatPopup = ({ open, onClose, user }: ChatPopupProps) => {
   }, [unreadCount]);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
+    if (!open || minimized) return;
+    const id = window.requestAnimationFrame(() => {
+      messageEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [messages, open, minimized]);
 
   const toNumericId = (value: unknown): number | null => {
     if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -97,18 +100,27 @@ const ChatPopup = ({ open, onClose, user }: ChatPopupProps) => {
   const currentUserId = toNumericId(authUser?.id);
 
   useEffect(() => {
-    const loadMessages = async () => {
+    let cancelled = false;
+
+    const syncMessages = async (showErrors: boolean) => {
       if (!open || !chatPartnerId || !currentUserId) {
-        setBackendEnabled(false);
-        setMessages([]);
+        if (!cancelled) {
+          setBackendEnabled(false);
+          setMessages([]);
+        }
         return;
       }
 
-      setLoading(true);
+      if (!cancelled) {
+        setLoading(true);
+      }
+
       try {
         const rows = await api.fetchChatMessages(chatPartnerId);
+        if (cancelled) return;
+
         setMessages(
-          rows.map((row) => ({
+          rows.map((row: any) => ({
             id: String(row.id),
             text: row.content,
             sender: row.senderId === currentUserId ? "me" : "them",
@@ -116,16 +128,40 @@ const ChatPopup = ({ open, onClose, user }: ChatPopupProps) => {
           }))
         );
         setBackendEnabled(true);
+
+        // If the popup is open for this user, incoming unread messages should become read.
+        const hasUnreadIncoming = rows.some(
+          (row: any) =>
+            row.senderId === chatPartnerId &&
+            row.receiverId === currentUserId &&
+            row.isRead === false
+        );
+        if (hasUnreadIncoming) {
+          await api.markChatThreadRead(chatPartnerId);
+        }
       } catch (error: any) {
+        if (cancelled) return;
         setBackendEnabled(false);
-        setMessages([]);
-        toast.error(error?.message || "Failed to load chat messages");
+        if (showErrors) {
+          setMessages([]);
+          toast.error(error?.message || "Failed to load chat messages");
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
-    void loadMessages();
+    void syncMessages(true);
+    const timer = window.setInterval(() => {
+      void syncMessages(false);
+    }, 2500);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
   }, [open, chatPartnerId, currentUserId]);
 
   const handleSend = async () => {
@@ -165,7 +201,7 @@ const ChatPopup = ({ open, onClose, user }: ChatPopupProps) => {
 
   if (!open || !user) return null;
 
-  return (
+  const popup = (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col w-[85vw] sm:w-80 max-w-sm shadow-2xl rounded-lg overflow-hidden border border-border bg-background">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 bg-primary text-primary-foreground">
@@ -209,7 +245,7 @@ const ChatPopup = ({ open, onClose, user }: ChatPopupProps) => {
       {!minimized && (
         <>
           {/* Messages */}
-          <ScrollArea className="h-[50vh] sm:h-72 max-h-80 px-3 py-2" ref={scrollRef}>
+          <ScrollArea className="h-[50vh] sm:h-72 max-h-80 px-3 py-2">
             <div className="space-y-3">
               {messages.map((message) => (
                 <div
@@ -235,6 +271,7 @@ const ChatPopup = ({ open, onClose, user }: ChatPopupProps) => {
                   </div>
                 </div>
               ))}
+              <div ref={messageEndRef} />
             </div>
           </ScrollArea>
 
@@ -267,6 +304,12 @@ const ChatPopup = ({ open, onClose, user }: ChatPopupProps) => {
       )}
     </div>
   );
+
+  if (typeof document === "undefined") {
+    return popup;
+  }
+
+  return createPortal(popup, document.body);
 };
 
 export default ChatPopup;

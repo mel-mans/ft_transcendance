@@ -28,4 +28,13 @@ export class MessagesController {
     const myId = req.user.userId;
     return this.messagesService.createMessage(myId, userId, content);
   }
+
+  @Post(':userId/read')
+  async markThreadAsRead(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Request() req,
+  ) {
+    const myId = req.user.userId;
+    return this.messagesService.markThreadAsRead(myId, userId);
+  }
 }

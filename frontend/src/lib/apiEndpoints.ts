@@ -31,6 +31,7 @@ export const API_ENDPOINTS = {
     messages: {
       inbox: `${API_PREFIXES.chat}/messages/inbox`,
       withUser: (userId: number | string) => `${API_PREFIXES.chat}/messages/${userId}`,
+      markRead: (userId: number | string) => `${API_PREFIXES.chat}/messages/${userId}/read`,
     },
     socketNamespace: "/chat",
   },
