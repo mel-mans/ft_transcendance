@@ -1,6 +1,4 @@
-<div align="center">
 
-<img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExZTd1YnZjNGVtMTFod3RwbmljcW1meTNhejl6ZWVlcWhqMGdkaTM1ZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xturgqU2FtXYhHjQdb/giphy.gif" width="600" alt="coding gif"/>
 
 # 🏠 RoomMate42 — *ft_transcendence*
 
