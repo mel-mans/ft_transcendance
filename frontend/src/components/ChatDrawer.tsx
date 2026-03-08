@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "@/components/ui/sonner";
+import api from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import {
   Drawer,
   DrawerClose,
@@ -19,6 +22,7 @@ interface Message {
 }
 
 interface ChatUser {
+  id?: string | number;
   name: string;
   avatar: string;
 }
@@ -30,40 +34,91 @@ interface ChatDrawerProps {
 }
 
 const ChatDrawer = ({ open, onOpenChange, user }: ChatDrawerProps) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      text: "Hey! I saw your profile and think we might be a good match as roommates!",
-      sender: "me",
-      timestamp: new Date(Date.now() - 1000 * 60 * 5),
-    },
-    {
-      id: "2",
-      text: "Hi there! Yeah, I noticed we have similar preferences. Are you also looking for a place near 42?",
-      sender: "them",
-      timestamp: new Date(Date.now() - 1000 * 60 * 3),
-    },
-    {
-      id: "3",
-      text: "Exactly! I'm hoping to find something within 20 mins of the campus.",
-      sender: "me",
-      timestamp: new Date(Date.now() - 1000 * 60 * 1),
-    },
-  ]);
+  const { user: authUser } = useAuth();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
 
-  const handleSend = () => {
-    if (!newMessage.trim()) return;
+  const toNumericId = (value: unknown): number | null => {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string" && value.trim()) {
+      const parsed = Number.parseInt(value, 10);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  };
 
-    const message: Message = {
-      id: Date.now().toString(),
-      text: newMessage,
-      sender: "me",
-      timestamp: new Date(),
+  const chatPartnerId = toNumericId(user?.id);
+  const currentUserId = toNumericId(authUser?.id);
+
+  useEffect(() => {
+    setNewMessage("");
+    setMessages([]);
+  }, [chatPartnerId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadMessages = async () => {
+      if (!open || !chatPartnerId || !currentUserId) {
+        setMessages([]);
+        return;
+      }
+      setLoading(true);
+      try {
+        const rows = await api.fetchChatMessages(chatPartnerId);
+        if (cancelled) return;
+        setMessages(
+          rows.map((row) => ({
+            id: String(row.id),
+            text: row.content,
+            sender: row.senderId === currentUserId ? "me" : "them",
+            timestamp: new Date(row.createdAt),
+          })),
+        );
+      } catch (error: any) {
+        if (cancelled) return;
+        setMessages([]);
+        toast.error(error?.message || "Failed to load chat messages");
+      } finally {
+        if (cancelled) return;
+        setLoading(false);
+      }
     };
 
-    setMessages((prev) => [...prev, message]);
+    void loadMessages();
+    return () => {
+      cancelled = true;
+    };
+  }, [chatPartnerId, currentUserId, open]);
+
+  const handleSend = async () => {
+    if (!newMessage.trim()) return;
+    if (!chatPartnerId || !currentUserId) {
+      toast.error("Chat is unavailable for this user.");
+      return;
+    }
+
+    const content = newMessage.trim();
     setNewMessage("");
+    setSending(true);
+    try {
+      const saved = await api.sendChatMessage(chatPartnerId, content);
+      const message: Message = {
+        id: String(saved.id),
+        text: saved.content,
+        sender: saved.senderId === currentUserId ? "me" : "them",
+        timestamp: new Date(saved.createdAt),
+      };
+      setMessages((prev) => [...prev, message]);
+    } catch (error: any) {
+      setNewMessage(content);
+      toast.error(error?.message || "Failed to send message");
+    } finally {
+      setSending(false);
+    }
+
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -98,7 +153,11 @@ const ChatDrawer = ({ open, onOpenChange, user }: ChatDrawerProps) => {
 
         <ScrollArea className="flex-1 px-4 py-4 h-[calc(85vh-140px)]">
           <div className="space-y-4">
-            {messages.map((message) => (
+            {loading ? (
+              <p className="text-sm text-muted-foreground text-center py-6">Loading messages...</p>
+            ) : messages.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">No messages yet.</p>
+            ) : messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${
@@ -133,8 +192,9 @@ const ChatDrawer = ({ open, onOpenChange, user }: ChatDrawerProps) => {
               onKeyDown={handleKeyPress}
               placeholder="Type a message..."
               className="flex-1"
+              disabled={sending}
             />
-            <Button onClick={handleSend} size="icon" disabled={!newMessage.trim()}>
+            <Button onClick={handleSend} size="icon" disabled={!newMessage.trim() || sending}>
               <Send className="w-4 h-4" />
             </Button>
           </div>

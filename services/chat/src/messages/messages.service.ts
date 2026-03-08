@@ -88,4 +88,21 @@ export class MessagesService {
       (a, b) => b.lastMessageAt.getTime() - a.lastMessageAt.getTime(),
     );
   }
+
+  async markThreadAsRead(userId: number, senderId: number) {
+    const result = await this.prisma.message.updateMany({
+      where: {
+        receiverId: userId,
+        senderId,
+        isRead: false,
+      },
+      data: {
+        isRead: true,
+      },
+    });
+
+    return {
+      updated: result.count,
+    };
+  }
 }
