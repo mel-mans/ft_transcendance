@@ -18,3 +18,27 @@ scrape_configs:
         - 'auth:3004'
         - 'chat:3001'
         - 'user:3002'
+        - 'listings:3005'
+        - 'ai:3006'
+
+  - job_name: 'blackbox-http'
+    metrics_path: /probe
+    params:
+      module: [http_any]
+    static_configs:
+      - targets:
+        - 'https://nginx/api/auth/'
+        - 'https://nginx/api/chat/'
+        - 'https://nginx/api/users/'
+        - 'https://nginx/api/listings/'
+        - 'https://nginx/api/ai/'
+        - 'https://nginx/'
+        - 'http://grafana:3000/'
+        - 'http://localhost:9090/'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115

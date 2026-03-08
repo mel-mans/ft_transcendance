@@ -9,7 +9,7 @@ COPY services/listings/package*.json ./
 COPY ./prisma ./prisma/
 
 # 2. Install prod deps in a separate layer, then all deps for build
-RUN npm ci --ignore-scripts
+RUN npm install --ignore-scripts
 RUN npx prisma generate
 
 COPY services/listings/. ./

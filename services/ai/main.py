@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from typing import List, Literal
 from google import genai
 from google.genai import types
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # ---------------------------------------------------------
 # IMPORTING YOUR NEW MODULAR ML ARCHITECTURE
@@ -19,6 +20,13 @@ from ml_recommender import RoommateRecommender
 # 1. INITIALIZATION & CONFIGURATION
 # ==========================================
 app = FastAPI(title="Roommate Matchmaker & AI Chat", description="ft_transcendence AI Modules")
+
+# ========== PROMETHEUS METRICS ==========
+Instrumentator(
+    should_group_status_codes=True,
+    should_group_untemplated=True,
+).instrument(app).expose(app, endpoint="/metrics")
+# =========================================
 
 # Allow the frontend to talk directly to this API
 app.add_middleware(

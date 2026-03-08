@@ -11,6 +11,7 @@ infrastructure/logging/logstash/data/
 # Node modules
 node_modules/
 
+infrastructure/grafana
 # Build outputs
 dist/
 build/
