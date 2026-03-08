@@ -107,6 +107,11 @@ const ChatPopup = ({ open, onClose, user }: ChatPopupProps) => {
       setLoading(true);
       try {
         const rows = await api.fetchChatMessages(chatPartnerId);
+        // Ensure rows is an array before calling .map()
+        if (!Array.isArray(rows)) {
+          console.error("fetchChatMessages did not return an array:", rows);
+          throw new Error("Invalid response format from chat service");
+        }
         setMessages(
           rows.map((row) => ({
             id: String(row.id),
@@ -117,9 +122,11 @@ const ChatPopup = ({ open, onClose, user }: ChatPopupProps) => {
         );
         setBackendEnabled(true);
       } catch (error: any) {
+        console.error("Chat error:", error);
         setBackendEnabled(false);
         setMessages([]);
-        toast.error(error?.message || "Failed to load chat messages");
+        const errorMsg = error?.message || error?.data?.message || "Failed to load chat messages";
+        toast.error(errorMsg);
       } finally {
         setLoading(false);
       }
