@@ -1,4 +1,5 @@
 services:
+  #------------------------------------nginx------------------------------------#
   nginx:
     container_name: nginx
     image: nginx
@@ -31,7 +32,7 @@ services:
     depends_on:
       front:
         condition: service_healthy
-
+  #------------------------------------frontend------------------------------------#
   front:
     container_name: front
     platform: ${DOCKER_PLATFORM:-linux/amd64}
@@ -53,7 +54,10 @@ services:
       - .env
     networks:
       - microservices_network
+  #------------------------------------backend services------------------------------------#
 
+
+  #------auth service------#
   auth:
     container_name: auth
     platform: ${DOCKER_PLATFORM:-linux/amd64}
@@ -87,6 +91,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+  #------chat service------#
   chat:
     container_name: chat
     build:
@@ -119,6 +124,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+  #------user management service------#
   user:
     container_name: user
     build:
@@ -130,7 +136,6 @@ services:
     ports:
       - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
     healthcheck:
-      # NOTE: The backend registers prefix "api/users" (with 's')
       test: [ "CMD", "curl", "-f", "http://user:3002/api/users" ]
       interval: 10s
       timeout: 5s
@@ -153,6 +158,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+  #------listings service------#
   listings:
     container_name: listings
     build:
@@ -187,7 +193,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-
+  #------postgres service------#
   postgres:
     image: postgres:16
     platform: ${DOCKER_PLATFORM:-linux/amd64}
@@ -215,6 +221,39 @@ services:
       POSTGRES_DB: ${DB_NAME}
     networks:
       - microservices_network
+  #------AI service------#
+  ai:
+    container_name: ai
+    build:
+      context: .
+      dockerfile: services/ai/Dockerfile
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    image: ai
+    restart: unless-stopped
+    # ports:
+    #   - "${AI_SERVICE_PORT}:${AI_SERVICE_PORT}"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", http://ai:3006/api/ai/model/status ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@postgres_db:5432/shared_db?schema=public
+    networks:
+      - microservices_network
+    volumes:
+      - ./prisma:/app/prisma
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 
 
