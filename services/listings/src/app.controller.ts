@@ -11,12 +11,44 @@ import { multerConfig } from './config/multer.config';
 @Controller()
 export class AppController {
     constructor(private readonly appService: AppService) {}
+    
     // Health check endpoint
     @Get()
     @ApiOperation({ summary: 'Health check' })
     getHealthCheck() {
         return this.appService.getHealthCheck();
     }
+
+    // Get all active listings
+    @Get('all')
+    @ApiOperation({ summary: 'Get all active listings' })
+    @ApiResponse({ status: 200, description: 'Returns all active listings' })
+    async getAllListings() {
+        return this.appService.getAllListings();
+    }
+
+    // Get current user listings
+    @UseGuards(JwtAuthGuard)
+    @Get('my-listings')
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get current user listings' })
+    @ApiResponse({ status: 200, description: 'Returns user listings' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    async getMyListings(@Req() req: any) {
+        const userId = req.user.userId;
+        return this.appService.getMyListings(userId);
+    }
+
+    // Get AI recommendations
+    @UseGuards(JwtAuthGuard)
+    @Get('recommendations')
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get AI-powered listing recommendations' })
+    async getRecommendations(@Req() req: any) {
+        const userId = req.user.userId;
+        return this.appService.getAIRecommendations(userId);
+    }
+
     // Create new listing
     @UseGuards(JwtAuthGuard)
     @Post()
@@ -29,33 +61,28 @@ export class AppController {
         const userId = req.user.userId;
         return this.appService.createListing(userId, createListingDto);
     }
-    // Get all active listings
-    @Get('all')
-    @ApiOperation({ summary: 'Get all active listings' })
-    @ApiResponse({ status: 200, description: 'Returns all active listings' })
-    async getAllListings() {
-        return this.appService.getAllListings();
-    }
-    // Get current user listings
-    @UseGuards(JwtAuthGuard)
-    @Get('my-listings')
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'Get current user listings' })
-    @ApiResponse({ status: 200, description: 'Returns user listings' })
-    @ApiResponse({ status: 401, description: 'Unauthorized' })
-    async getMyListings(@Req() req: any) {
-        const userId = req.user.userId;
-        return this.appService.getMyListings(userId);
-    }
-    // Get listing by ID
+
+    // Get listing by ID (PARAMETRIC - MUST BE LAST)
     @Get(':id')
     @ApiOperation({ summary: 'Get listing by ID' })
     @ApiParam({ name: 'id', description: 'Listing ID' })
     @ApiResponse({ status: 200, description: 'Returns listing details' })
     @ApiResponse({ status: 404, description: 'Listing not found' })
-    async getListingById(@Param('id', ParseIntPipe) id: number) {
-        return this.appService.getListingById(id);
+    async getListingById(
+        @Param('id', ParseIntPipe) id: number,
+        @Req() req: any
+    ) {
+        const listing = await this.appService.getListingById(id);
+        if (req.user?.userId) {
+            this.appService.recordListingInteraction(
+                req.user.userId,
+                id,
+                'view'
+            ).catch(err => console.error('Tracking failed:', err));
+        }
+        return listing;
     }
+
     // Update listing
     @UseGuards(JwtAuthGuard)
     @Patch(':id')
@@ -75,6 +102,7 @@ export class AppController {
         const userId = req.user.userId;
         return this.appService.updateListing(id, userId, updateListingDto);
     }
+
     // Delete listing
     @UseGuards(JwtAuthGuard)
     @Delete(':id')
@@ -89,27 +117,28 @@ export class AppController {
         const userId = req.user.userId;
         return this.appService.deleteListing(id, userId);
     }
-// ========== UPLOAD LISTING PHOTOS ==========
-@UseGuards(JwtAuthGuard)
-@Post(':id/photos')
-@ApiBearerAuth()
-@ApiOperation({ summary: 'Upload listing photos (2-6 images)' })
-@ApiParam({ name: 'id', description: 'Listing ID' })
-@ApiConsumes('multipart/form-data')
-@ApiBody({
-    schema: {
-        type: 'object',
-        properties: {
-            files: {
-                type: 'array',
-                items: {
-                    type: 'string',
-                    format: 'binary',
+
+    // Upload listing photos
+    @UseGuards(JwtAuthGuard)
+    @Post(':id/photos')
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Upload listing photos (2-6 images)' })
+    @ApiParam({ name: 'id', description: 'Listing ID' })
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                files: {
+                    type: 'array',
+                    items: {
+                        type: 'string',
+                        format: 'binary',
+                    },
                 },
             },
         },
-    },
-})
+    })
     @ApiResponse({ status: 200, description: 'Photos uploaded successfully' })
     @ApiResponse({ status: 400, description: 'Invalid number of files (need 2-6)' })
     @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -125,7 +154,7 @@ export class AppController {
         return this.appService.uploadListingPhotos(id, userId, files);
     }
 
-    // ========== DELETE SPECIFIC PHOTO ==========
+    // Delete specific photo
     @UseGuards(JwtAuthGuard)
     @Delete(':id/photos/:photoIndex')
     @ApiBearerAuth()
@@ -145,6 +174,4 @@ export class AppController {
         const userId = req.user.userId;
         return this.appService.deleteListingPhoto(id, userId, photoIndex);
     }
-
-
 }
