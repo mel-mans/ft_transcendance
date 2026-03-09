@@ -1,83 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { useGlitch } from "react-powerglitch";
-import ListingCard from "@/components/ListingCard";
-import UserProfileCard from "@/components/UserProfileCard";
+import HeroImageCube from "@/components/HeroImageCube";
+import type { CubeFaceCard } from "@/components/HeroImageCube";
 import { useNavigate } from "react-router-dom";
 
-const exampleListings = [
-  {
-    title: "Cozy Apartment near Campus",
-    location: "Paris 13e, 5 min from 42",
-    image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop",
-    price: "€650/mo",
-    postedBy: "Marie",
-    posterAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop",
-    roommatesWanted: 3,
-    roommatesFound: 2,
-    availableDate: "Feb 2026",
-    amenities: [
-      { emoji: "📶", label: "WiFi" },
-      { emoji: "🍳", label: "Kitchen" },
-      { emoji: "🧺", label: "Laundry" },
-    ],
-  },
-  {
-    title: "Spacious Shared House",
-    location: "Paris 14e, Alésia",
-    image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop",
-    price: "€580/mo",
-    postedBy: "Lucas",
-    posterAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop",
-    roommatesWanted: 5,
-    roommatesFound: 4,
-    availableDate: "Mar 2026",
-    amenities: [
-      { emoji: "🌳", label: "Garden" },
-      { emoji: "📶", label: "WiFi" },
-      { emoji: "🅿️", label: "Parking" },
-    ],
-  },
+const cubeFaces: CubeFaceCard[] = [
+  { kind: "listing", title: "Cozy Apt", subtitle: "Paris 13e · WiFi", meta: "€650/mo · 2/3 spots" },
+  { kind: "roommate", title: "Alex, 24", subtitle: "Night owl · Gamer", meta: "Move-in Feb 2026" },
+  { kind: "listing", title: "Shared House", subtitle: "Paris 14e · Garden", meta: "€580/mo · 4/5 spots" },
+  { kind: "roommate", title: "Sofia, 22", subtitle: "Early bird · Cooks", meta: "Budget €500-700/mo" },
+  { kind: "listing", title: "Modern Loft", subtitle: "Canal area · Secure", meta: "€710/mo · 2/4 spots" },
+  { kind: "roommate", title: "Marcus, 26", subtitle: "Social · Clean", meta: "Move-in Mar 2026" },
 ];
-
-const exampleUsers = [
-  {
-    name: "Alex",
-    age: 24,
-    location: "Paris 13e",
-    bio: "42 student in my second year. Love coding late nights but always respect quiet hours!",
-    avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop",
-    moveInDate: "Feb 2026",
-    budget: "€600-800/mo",
-    preferences: [
-      { emoji: "🚭", label: "Non-smoker" },
-      { emoji: "🤫", label: "Quiet hours" },
-      { emoji: "🎮", label: "Gamer" },
-    ],
-  },
-  {
-    name: "Sofia",
-    age: 22,
-    location: "Paris 14e",
-    bio: "New to 42, excited to meet people! I'm an early bird who enjoys cooking.",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop",
-    moveInDate: "Mar 2026",
-    budget: "€500-700/mo",
-    preferences: [
-      { emoji: "🚭", label: "Non-smoker" },
-      { emoji: "🌅", label: "Early bird" },
-      { emoji: "🍳", label: "Cooks" },
-    ],
-  },
-];
-
-const mixedCarouselItems = [
-  { type: "listing", data: exampleListings[0] },
-  { type: "roommate", data: exampleUsers[0] },
-  { type: "listing", data: exampleListings[1] },
-  { type: "roommate", data: exampleUsers[1] },
-] as const;
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -139,26 +74,7 @@ const Hero = () => {
             <div className="absolute -inset-4 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 rounded-3xl blur-2xl opacity-30" />
             
             <div className="relative">
-              {/* Carousel */}
-              <Carousel
-                className="w-full"
-                opts={{ loop: true, align: "center" }}
-                variant="cone-vertical"
-              >
-                <CarouselContent>
-                  {mixedCarouselItems.map((item, index) => (
-                    <CarouselItem key={index}>
-                      <div className="w-[250px] h-[250px] mx-auto overflow-hidden rounded-2xl transform transition-transform duration-300 hover:scale-[1.02]">
-                        {item.type === "listing" ? (
-                          <ListingCard listing={item.data} transparentBackground insetImage fixedSize={false} />
-                        ) : (
-                          <UserProfileCard user={item.data} blackBackground fixedSize={false} />
-                        )}
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-              </Carousel>
+              <HeroImageCube faces={cubeFaces} />
 
               {/* Decorative elements */}
               <div className="absolute -top-6 -right-6 w-12 h-12 rounded-full bg-primary/15 blur-xl" />
