@@ -6,7 +6,7 @@ import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Intra42AuthGuard } from './guards/intra42-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
-import { Response, Request } from 'express';  // ← Add Response
+import { Response, Request } from 'express';
 
 @Controller()
 export class AppController {
