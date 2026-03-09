@@ -111,7 +111,7 @@ const ChatPopup = ({ open, onClose, user }: ChatPopupProps) => {
         return;
       }
 
-      if (!cancelled) {
+      if (!cancelled && showErrors) {
         setLoading(true);
       }
 
@@ -288,13 +288,13 @@ const ChatPopup = ({ open, onClose, user }: ChatPopupProps) => {
                     : "Chat requires login + a valid user id"
                 }
                 className="flex-1 h-9 text-sm"
-                disabled={!backendEnabled || loading || sending}
+                disabled={!backendEnabled || sending}
               />
               <Button 
                 onClick={handleSend} 
                 size="icon" 
                 className="h-9 w-9"
-                disabled={!backendEnabled || loading || sending || !newMessage.trim()}
+                disabled={!backendEnabled || sending || !newMessage.trim()}
               >
                 <Send className="w-4 h-4" />
               </Button>

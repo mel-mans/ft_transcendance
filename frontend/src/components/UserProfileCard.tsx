@@ -8,6 +8,7 @@ interface Preference {
 
 interface UserProfile {
   id?: string | number;
+  username?: string;
   name: string;
   age: number;
   location: string;
@@ -50,6 +51,9 @@ const UserProfileCard = ({
         />
         <div className="flex-1">
           <h3 className="text-lg font-bold text-foreground">{user.name}, {user.age}</h3>
+          {user.username && (
+            <div className="text-xs text-primary/80 mb-0.5">@{user.username}</div>
+          )}
           <div className="flex items-center gap-1 text-muted-foreground text-xs">
             <MapPin className="w-3 h-3" />
             <span>{user.location}</span>

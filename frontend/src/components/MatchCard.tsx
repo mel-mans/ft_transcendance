@@ -52,16 +52,8 @@ const MatchCard = ({
         blackBackground ? "bg-black" : "glass"
       }`}
     >
-      {/* Match Score Badge */}
-      <div className="absolute top-4 right-4">
-        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 ${getMatchColor(user.matchScore)}`}>
-          <Heart className="w-4 h-4 fill-current" />
-          <span className="font-bold">{user.matchScore}%</span>
-        </div>
-      </div>
-
       {/* Header */}
-      <div className="flex items-start gap-4 mb-4 pr-20">
+      <div className="flex items-start gap-4 mb-4">
         <img
           src={user.avatar}
           alt={user.name}
@@ -77,6 +69,20 @@ const MatchCard = ({
           </div>
           <span className={`text-xs ${getMatchColor(user.matchScore)}`}>
             {getMatchLabel(user.matchScore)}
+          </span>
+        </div>
+        <div className="flex flex-col items-center gap-1.5 shrink-0">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onChatClick?.({ id: user.id, name: user.name, avatar: user.avatar })}
+            className="shrink-0"
+          >
+            <MessageCircle className="w-4 h-4" />
+          </Button>
+          <span className={`inline-flex items-center gap-1 text-xs font-semibold ${getMatchColor(user.matchScore)}`}>
+            <Heart className="w-3 h-3 fill-current" />
+            {user.matchScore}%
           </span>
         </div>
       </div>
@@ -108,15 +114,6 @@ const MatchCard = ({
           </div>
           <span className="text-primary font-semibold">{user.budget}</span>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onChatClick?.({ id: user.id, name: user.name, avatar: user.avatar })}
-          className="gap-2"
-        >
-          <MessageCircle className="w-4 h-4" />
-          Chat
-        </Button>
       </div>
     </div>
   );

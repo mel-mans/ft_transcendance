@@ -3,7 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as UiCalendar } from "@/components/ui/calendar";
 import { Plus, X, Home, Upload, Trash2 } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import CurrencySelect from "@/components/CurrencySelect";
 
 interface ListingFormData {
@@ -40,11 +43,28 @@ interface CreateListingFormProps {
   existingListing?: ListingFormData & { currency: string };
 }
 
+const toLocalDateString = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const parseLocalDate = (value: string) => {
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  const parsed = new Date(year, month - 1, day);
+  if (Number.isNaN(parsed.getTime())) return null;
+  parsed.setHours(0, 0, 0, 0);
+  return parsed;
+};
+
 const CreateListingForm = ({ onClose, onPublish, existingListing }: CreateListingFormProps) => {
   const [currency, setCurrency] = useState(existingListing?.currency || "EUR");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [form, setForm] = useState<ListingFormData>(
     existingListing || {
       title: "",
@@ -58,6 +78,10 @@ const CreateListingForm = ({ onClose, onPublish, existingListing }: CreateListin
       images: [],
     }
   );
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayDateString = toLocalDateString(today);
 
   const toggleAmenity = (label: string) => {
     setForm((prev) => ({
@@ -109,6 +133,17 @@ const CreateListingForm = ({ onClose, onPublish, existingListing }: CreateListin
     }
     if (imageFiles.length > 6) {
       setSubmitError("Maximum 6 photos allowed.");
+      return;
+    }
+
+    const selectedAvailableDate = parseLocalDate(form.availableDate);
+    if (!selectedAvailableDate) {
+      setSubmitError("Please choose a valid available date.");
+      return;
+    }
+
+    if (selectedAvailableDate < today) {
+      setSubmitError("Available date cannot be earlier than today.");
       return;
     }
 
@@ -179,11 +214,52 @@ const CreateListingForm = ({ onClose, onPublish, existingListing }: CreateListin
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Available Date</label>
-              <Input
+              <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                <PopoverTrigger asChild>
+                  <Input
+                    value={form.availableDate}
+                    onFocus={() => setIsDatePickerOpen(true)}
+                    onClick={() => setIsDatePickerOpen(true)}
+                    onChange={() => {}}
+                    readOnly
+                    required
+                    placeholder="Select date"
+                    className="bg-white/5 border-white/10"
+                  />
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 border-white/10 bg-popover" align="start">
+                  <UiCalendar
+                    mode="single"
+                    selected={form.availableDate ? parseLocalDate(form.availableDate) || undefined : undefined}
+                    onSelect={(date) => {
+                      if (!date) return;
+                      const normalized = new Date(date);
+                      normalized.setHours(0, 0, 0, 0);
+                      if (normalized < today) return;
+                      setForm({ ...form, availableDate: toLocalDateString(normalized) });
+                      setIsDatePickerOpen(false);
+                    }}
+                    disabled={(date) => {
+                      const normalized = new Date(date);
+                      normalized.setHours(0, 0, 0, 0);
+                      return normalized < today;
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <CalendarDays className="w-3.5 h-3.5" />
+                <span>Choose today or a future date.</span>
+              </div>
+              <input
                 type="date"
                 value={form.availableDate}
+                min={todayDateString}
                 onChange={(e) => setForm({ ...form, availableDate: e.target.value })}
-                required
+                className="sr-only"
+                tabIndex={-1}
+                aria-hidden="true"
               />
             </div>
             <div className="space-y-2">
