@@ -136,7 +136,7 @@ const Hero = () => {
           {/* Right: Carousel Preview */}
           <div className="relative">
             {/* Floating glow effect */}
-            <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 rounded-3xl blur-2xl opacity-50" />
+            <div className="absolute -inset-4 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 rounded-3xl blur-2xl opacity-30" />
             
             <div className="relative">
               {/* Carousel */}
@@ -148,11 +148,11 @@ const Hero = () => {
                 <CarouselContent>
                   {mixedCarouselItems.map((item, index) => (
                     <CarouselItem key={index}>
-                      <div className="transform transition-transform duration-300 hover:scale-[1.02]">
+                      <div className="w-[250px] h-[250px] mx-auto overflow-hidden rounded-2xl transform transition-transform duration-300 hover:scale-[1.02]">
                         {item.type === "listing" ? (
-                          <ListingCard listing={item.data} transparentBackground insetImage />
+                          <ListingCard listing={item.data} transparentBackground insetImage fixedSize={false} />
                         ) : (
-                          <UserProfileCard user={item.data} blackBackground />
+                          <UserProfileCard user={item.data} blackBackground fixedSize={false} />
                         )}
                       </div>
                     </CarouselItem>
@@ -161,8 +161,8 @@ const Hero = () => {
               </Carousel>
 
               {/* Decorative elements */}
-              <div className="absolute -top-6 -right-6 w-12 h-12 rounded-full bg-primary/30 blur-xl" />
-              <div className="absolute -bottom-6 -left-6 w-16 h-16 rounded-full bg-secondary/30 blur-xl" />
+              <div className="absolute -top-6 -right-6 w-12 h-12 rounded-full bg-primary/15 blur-xl" />
+              <div className="absolute -bottom-6 -left-6 w-16 h-16 rounded-full bg-secondary/15 blur-xl" />
             </div>
           </div>
         </div>

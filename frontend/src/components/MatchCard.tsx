@@ -48,7 +48,7 @@ const MatchCard = ({
 
   return (
     <div
-      className={`rounded-2xl p-6 hover:scale-[1.02] transition-all duration-300 relative ${
+      className={`rounded-2xl p-6 hover:scale-[1.02] transition-all duration-300 relative overflow-hidden w-[624px] h-[252.5px] ${
         blackBackground ? "bg-black" : "glass"
       }`}
     >

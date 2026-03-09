@@ -45,6 +45,7 @@ const toCardListing = (listing: ListingDto) => ({
   title: listing.title,
   location: listing.location,
   image: toImageSrc(listing.images?.[0] || ""),
+  images: (listing.images || []).map(toImageSrc),
   price: `${CURRENCY_SYMBOLS[listing.currency] || `${listing.currency} `}${listing.price}/mo`,
   posterId: listing.user?.id,
   postedBy: listing.user?.name || listing.user?.username || "Unknown",

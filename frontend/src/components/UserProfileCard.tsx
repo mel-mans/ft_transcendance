@@ -23,6 +23,7 @@ interface UserProfileCardProps {
   onChatClick?: (user: { id?: string | number; name: string; avatar: string }) => void;
   blackBackground?: boolean;
   chatDisabled?: boolean;
+  fixedSize?: boolean;
 }
 
 const UserProfileCard = ({
@@ -30,10 +31,13 @@ const UserProfileCard = ({
   onChatClick,
   blackBackground = false,
   chatDisabled = false,
+  fixedSize = true,
 }: UserProfileCardProps) => {
   return (
     <div
-      className={`rounded-2xl p-4 hover:scale-[1.02] transition-all duration-300 ${
+      className={`rounded-2xl p-4 hover:scale-[1.02] transition-all duration-300 overflow-hidden ${
+        fixedSize ? "w-[624px] h-[252.5px]" : ""
+      } ${
         blackBackground ? "bg-black" : "glass"
       }`}
     >
