@@ -101,6 +101,17 @@ const CreateListingForm = ({ onClose, onPublish, existingListing }: CreateListin
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
+
+    // Validate photos for new listings
+    if (!existingListing && imageFiles.length < 2) {
+      setSubmitError("Please upload at least 2 photos for a new listing.");
+      return;
+    }
+    if (imageFiles.length > 6) {
+      setSubmitError("Maximum 6 photos allowed.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       await onPublish?.({ ...form, currency }, imageFiles);

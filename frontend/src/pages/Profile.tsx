@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import * as React from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MatchCard from "@/components/MatchCard";
@@ -8,11 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   UserProfile,
-  getCurrentUser,
-  getMatchedProfiles,
+  purgeSelfFromStoredProfiles,
   setCurrentUser as storeCurrentUser,
 } from "@/lib/matching";
-import api, { type CreateListingPayload, type ListingDto } from "@/lib/api";
+import api, { type AIUserProfile, type CreateListingPayload, type ListingDto } from "@/lib/api";
 import {
   MapPin,
   Calendar,
@@ -242,6 +242,79 @@ const isProfileComplete = (user: UserProfile | null) => {
   );
 };
 
+const extractNumericBudget = (value: unknown): number => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  if (typeof value === "string") {
+    const parsed = Number.parseInt(value.replace(/[^\d]/g, ""), 10);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+};
+
+const toAIProfile = (u: any): AIUserProfile | null => {
+  if (!u?.id) return null;
+
+  const prefs = u.preferences || {};
+  const budget = extractNumericBudget(prefs.budget ?? u.budget);
+  if (budget <= 0) return null;
+
+  return {
+    user_id: Number(u.id),
+    budget_max: budget,
+    cleanliness: (prefs.clean ?? u.clean) ? 5 : 3,
+    sleep_schedule: (prefs.nightOwl ?? u.nightOwl) ? "night_owl" : "early_bird",
+    smoker: Boolean(prefs.smoker ?? prefs.smoking ?? u.smoker ?? u.smoking),
+    has_pets: Boolean(prefs.petFriendly ?? prefs.petsOk ?? u.petFriendly ?? u.petsOk),
+  };
+};
+
+const buildClosestMatches = async (
+  user: UserProfile
+): Promise<Array<UserProfile & { matchScore: number }>> => {
+  const allUsers = await api.fetchAllUsers();
+  const selfId = String(user.id ?? "").trim();
+  const selfUsername = String(user.username ?? "").trim().toLowerCase();
+
+  const targetAI = toAIProfile(user);
+  const matchedProfiles: Array<UserProfile & { matchScore: number }> = [];
+
+  for (const candidate of allUsers) {
+    const normalized = normalizeUserProfile(candidate);
+    if (!normalized) continue;
+
+    const profileId = String(normalized.id ?? "").trim();
+    const profileUsername = String(normalized.username ?? "").trim().toLowerCase();
+
+    if (selfId && profileId && profileId === selfId) continue;
+    if (selfUsername && profileUsername && profileUsername === selfUsername) continue;
+
+    const candidateAI = toAIProfile(candidate);
+    let matchScore = 50;
+
+    if (targetAI && candidateAI) {
+      try {
+        const result = await api.getAIMatch({
+          target_user: targetAI,
+          candidates: [candidateAI],
+        });
+
+        if (result.best_match_id === candidateAI.user_id) {
+          matchScore = Math.round(result.confidence_score * 100);
+        }
+      } catch (err) {
+        console.warn("AI closest match failed for user", candidateAI.user_id, err);
+      }
+    }
+
+    matchedProfiles.push({
+      ...normalized,
+      matchScore,
+    });
+  }
+
+  return matchedProfiles.sort((a, b) => b.matchScore - a.matchScore);
+};
+
 const Profile = () => {
   const { user: authUser, updateUser, logout } = useAuth();
   const navigate = useNavigate();
@@ -255,54 +328,66 @@ const Profile = () => {
   const [logoutArmed, setLogoutArmed] = useState(false);
   const [myListings, setMyListings] = useState<ProfileListing[]>([]);
   const [listingsError, setListingsError] = useState<string | null>(null);
+  const [listingsVersion, setListingsVersion] = useState(0);
+  const listingsFetchedRef = React.useRef(false);
 
   useEffect(() => {
     (async () => {
-      const localUser = normalizeUserProfile(getCurrentUser());
+      const apiUser = await api.fetchCurrentUser();
+      const normalizedApiUser = normalizeUserProfile(apiUser);
 
-      // Try fetching authenticated user from backend
-      try {
-        const apiUser = await api.fetchCurrentUser();
-        const normalizedApiUser = normalizeUserProfile(apiUser);
-        if (normalizedApiUser) {
-          const preferredUser =
-            isProfileComplete(normalizedApiUser) || !localUser
-              ? normalizedApiUser
-              : localUser;
-
-          setCurrentUser(preferredUser);
-          storeCurrentUser(preferredUser);
-          setShowSetup(!isProfileComplete(preferredUser));
-          setMatches(
-            isProfileComplete(preferredUser) ? getMatchedProfiles(preferredUser) : []
-          );
-          return;
-        }
-      } catch (err) {
-        // fallback to local stored user
+      if (!normalizedApiUser) {
+        localStorage.removeItem("42roommates_current_user");
+        setCurrentUser(null);
+        setShowSetup(false);
+        setMatches([]);
+        return;
       }
 
-      setCurrentUser(localUser);
-      if (localUser) {
-        setShowSetup(!isProfileComplete(localUser));
-        setMatches(isProfileComplete(localUser) ? getMatchedProfiles(localUser) : []);
+      setCurrentUser(normalizedApiUser);
+      storeCurrentUser(normalizedApiUser);
+      purgeSelfFromStoredProfiles(normalizedApiUser);
+      setShowSetup(!isProfileComplete(normalizedApiUser));
+
+      if (!isProfileComplete(normalizedApiUser)) {
+        setMatches([]);
+        return;
+      }
+
+      try {
+        const closestMatches = await buildClosestMatches(normalizedApiUser);
+        setMatches(closestMatches);
+      } catch (err) {
+        console.error("Failed to fetch closest matches:", err);
+        setMatches([]);
       }
     })();
   }, []);
 
   useEffect(() => {
+    if (listingsFetchedRef.current) return;
+    listingsFetchedRef.current = true;
+
     (async () => {
       try {
         const listings = await api.fetchMyListings();
-        setMyListings(listings.map(mapListingDtoToProfileListing));
+        const uniqueListings = listings.reduce((acc: any[], curr: any) => {
+          if (!acc.some((l) => l.id === curr.id)) {
+            acc.push(curr);
+          }
+          return acc;
+        }, []);
+        setMyListings(uniqueListings.map(mapListingDtoToProfileListing));
       } catch (err: any) {
         setListingsError(err?.message || "Could not load your listings.");
       }
     })();
-  }, []);
+  }, [listingsVersion]);
 
   const handleProfileComplete = (profile: UserProfile) => {
     setCurrentUser(profile);
+    storeCurrentUser(profile);
+    purgeSelfFromStoredProfiles(profile);
     updateUser({
       ...(authUser || {}),
       id: profile.id,
@@ -314,8 +399,16 @@ const Profile = () => {
       avatar: profile.avatar,
     });
     setShowSetup(false);
-    const matched = getMatchedProfiles(profile);
-    setMatches(matched);
+
+    (async () => {
+      try {
+        const closestMatches = await buildClosestMatches(profile);
+        setMatches(closestMatches);
+      } catch (err) {
+        console.error("Failed to fetch closest matches:", err);
+        setMatches([]);
+      }
+    })();
   };
 
   const handleLogoutClick = async () => {
@@ -344,7 +437,12 @@ const Profile = () => {
         throw new Error("Listing to edit was not found.");
       }
       const res = await api.updateListing(listingToUpdate.id, payload);
-      const updatedListing = mapListingDtoToProfileListing(res.listing);
+      let listingResult = res.listing;
+      if (imageFiles.length > 0) {
+        const upload = await api.uploadListingPhotos(listingToUpdate.id, imageFiles);
+        listingResult = upload.listing;
+      }
+      const updatedListing = mapListingDtoToProfileListing(listingResult);
       setMyListings((prev) =>
         prev.map((item, idx) => (idx === editingIndex ? updatedListing : item))
       );
@@ -355,13 +453,34 @@ const Profile = () => {
 
     const created = await api.createListing(payload);
     let listingResult = created.listing;
-    if (imageFiles.length >= 2) {
+    
+    // Photo upload is mandatory for new listings
+    try {
+      if (imageFiles.length < 2) {
+        // This should never happen due to frontend validation, but safety check
+        await api.deleteListing(listingResult.id);
+        throw new Error("Minimum 2 photos required. Please try again.");
+      }
       const upload = await api.uploadListingPhotos(listingResult.id, imageFiles);
       listingResult = upload.listing;
+    } catch (uploadError: any) {
+      // Photo upload failed - delete the listing to keep database consistent
+      try {
+        await api.deleteListing(listingResult.id);
+      } catch (deleteError) {
+        // Ignore delete errors
+      }
+      throw uploadError;
     }
+    
     const createdListing = mapListingDtoToProfileListing(listingResult);
-    setMyListings((prev) => [createdListing, ...prev]);
+    setMyListings((prev) => {
+      const exists = prev.some((l) => l.id === createdListing.id);
+      return exists ? prev : [createdListing, ...prev];
+    });
     setShowCreateListing(false);
+    listingsFetchedRef.current = false;
+    setListingsVersion((v) => v + 1);
   };
 
   const handleDeleteListing = async (id: number) => {
@@ -384,7 +503,48 @@ const Profile = () => {
         .filter(Boolean)
     : [];
 
-  const topMatches = matches.slice(0, 3);
+  const selfId = String(currentUser?.id ?? authUser?.id ?? "").trim();
+  const selfUsername = String(currentUser?.username ?? authUser?.username ?? "")
+    .trim()
+    .toLowerCase();
+  const selfFingerprint = [
+    String(currentUser?.name ?? "").trim().toLowerCase(),
+    String(currentUser?.age ?? "").trim(),
+    String(currentUser?.location ?? "").trim().toLowerCase(),
+  ].join("|");
+  const selfName = String(currentUser?.name ?? "").trim().toLowerCase();
+  const selfBio = String(currentUser?.bio ?? "").trim().toLowerCase();
+  const selfAvatar = String(currentUser?.avatar ?? "").trim();
+
+  const matchesWithoutSelf = matches.filter((match) => {
+    const matchId = String(match.id ?? "").trim();
+    const matchUsername = String(match.username ?? "").trim().toLowerCase();
+    const matchFingerprint = [
+      String(match.name ?? "").trim().toLowerCase(),
+      String(match.age ?? "").trim(),
+      String(match.location ?? "").trim().toLowerCase(),
+    ].join("|");
+    const matchName = String(match.name ?? "").trim().toLowerCase();
+    const matchBio = String(match.bio ?? "").trim().toLowerCase();
+    const matchAvatar = String(match.avatar ?? "").trim();
+
+    const sameById = Boolean(selfId) && matchId === selfId;
+    const sameByUsername = Boolean(selfUsername) && matchUsername === selfUsername;
+    const sameByFingerprint = selfFingerprint !== "||" && matchFingerprint === selfFingerprint;
+    const sameByContent =
+      Boolean(selfName) &&
+      Boolean(selfBio) &&
+      matchName === selfName &&
+      matchBio === selfBio;
+    const sameByAvatarAndName =
+      Boolean(selfAvatar) &&
+      Boolean(selfName) &&
+      matchAvatar === selfAvatar &&
+      matchName === selfName;
+
+    return !(sameById || sameByUsername || sameByFingerprint || sameByContent || sameByAvatarAndName);
+  });
+  const topMatches = matchesWithoutSelf.slice(0, 3);
   const avgScore = topMatches.length > 0
     ? Math.round(topMatches.reduce((sum, m) => sum + m.matchScore, 0) / topMatches.length)
     : 0;
@@ -550,7 +710,7 @@ const Profile = () => {
           <div className="grid grid-cols-3 gap-3">
             {[
               { icon: Heart, label: "Avg. Match", value: `${avgScore}%`, color: "text-primary" },
-              { icon: Users, label: "Candidates", value: `${matches.length}`, color: "text-secondary" },
+              { icon: Users, label: "Candidates", value: `${matchesWithoutSelf.length}`, color: "text-secondary" },
               { icon: TrendingUp, label: "Top Match", value: topMatches[0] ? `${topMatches[0].matchScore}%` : "—", color: "text-primary" },
             ].map((stat, i) => (
               <div key={i} className="glass rounded-xl p-4 text-center">

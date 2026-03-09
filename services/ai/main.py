@@ -134,7 +134,7 @@ async def chat_with_assistant(
     async def event_generator():
         try:
             response = client.models.generate_content_stream(
-                model='gemini-2.5-flash',
+                model='gemini-2.5-flash-lite',
                 contents=request.message,
                 config=types.GenerateContentConfig(
                     system_instruction="You are a helpful, friendly assistant for a Roommate Finder web app. Keep your answers concise and helpful."
@@ -172,7 +172,7 @@ def generate_bio(
     
     # Build comprehensive prompt
     prompt = (
-        f"Write a complete 2-3 sentence bio for a roommate finder profile. "
+        f"Write a COMPLETE 2-3 sentence bio for a roommate finder profile. "
         f"This person enjoys {request.hobbies} and is {request.personality}. "
     )
     
@@ -184,26 +184,57 @@ def generate_bio(
     
     prompt += (
         "Write in first-person. Be natural and friendly. "
-        "IMPORTANT: Write the COMPLETE bio (100-250 characters). "
-        "Return ONLY the bio text with no extra formatting."
+        "Write 2-3 COMPLETE sentences (150-250 characters total). "
+        "DO NOT stop mid-sentence. Finish all thoughts completely. "
+        "Return ONLY the bio text."
     )
     
     try:
         # Synchronous call (waits for complete response)
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-2.5-flash-lite',
             contents=prompt,
             config=types.GenerateContentConfig(
-                temperature=0.9,
-                top_p=0.95,
+                temperature=0.7,  # Reduced for more consistent, complete responses
+                top_p=0.9,
                 top_k=40,
                 max_output_tokens=500,
-                candidate_count=1
+                candidate_count=1,
+                safety_settings=[
+                    types.SafetySetting(
+                        category="HARM_CATEGORY_HATE_SPEECH",
+                        threshold="BLOCK_NONE"
+                    ),
+                    types.SafetySetting(
+                        category="HARM_CATEGORY_HARASSMENT",
+                        threshold="BLOCK_NONE"
+                    ),
+                    types.SafetySetting(
+                        category="HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                        threshold="BLOCK_NONE"
+                    ),
+                    types.SafetySetting(
+                        category="HARM_CATEGORY_DANGEROUS_CONTENT",
+                        threshold="BLOCK_NONE"
+                    )
+                ]
             )
         )
         
-        # Extract complete text
-        bio_text = response.text.strip() if response.text else ""
+        # Extract text - try response.text property first (simplest)
+        try:
+            bio_text = response.text if response.text else ""
+        except:
+            # Fallback: manually extract from candidates
+            bio_text = ""
+            if response.candidates and len(response.candidates) > 0:
+                candidate = response.candidates[0]
+                if candidate.content and candidate.content.parts:
+                    for part in candidate.content.parts:
+                        if hasattr(part, 'text') and part.text:
+                            bio_text += part.text
+        
+        bio_text = bio_text.strip()
         
         # Clean up - remove only surrounding quotes, not apostrophes
         if bio_text.startswith('"') and bio_text.endswith('"'):

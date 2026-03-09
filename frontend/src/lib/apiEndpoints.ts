@@ -48,6 +48,9 @@ export const API_ENDPOINTS = {
   },
   ai: {
     root: `${API_PREFIXES.ai}/`,
+    match: `${API_PREFIXES.ai}/match`,
+    feedback: `${API_PREFIXES.ai}/feedback`,
+    modelStatus: `${API_PREFIXES.ai}/model/status`,
     generateBio: `${API_PREFIXES.ai}/generate-bio`,
   },
 };

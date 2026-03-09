@@ -55,6 +55,9 @@ export class AppService {
             isSecure,
         } = createListingDto;
 
+        // Note: Photos will be uploaded separately via uploadListingPhotos endpoint
+        // Frontend enforces 2-6 photos requirement before allowing listing creation
+
         const listing = await this.prisma.listing.create({
             data: {
                 userId,
@@ -145,6 +148,17 @@ export class AppService {
     async getMyListings(userId: number) {
         const listings = await this.prisma.listing.findMany({
             where: { userId },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        name: true,
+                        avatar: true,
+                        bio: true,
+                    },
+                },
+            },
             orderBy: { createdAt: 'desc' },
         });
 
@@ -220,9 +234,9 @@ export class AppService {
 
     // ========== UPLOAD LISTING PHOTOS ==========
     async uploadListingPhotos(listingId: number, userId: number, files: Express.Multer.File[]) {
-        // Validate file count
-        if (!files || files.length < 2) {
-            throw new BadRequestException('Minimum 2 photos required');
+        // Validate basic file count
+        if (!files || files.length < 1) {
+            throw new BadRequestException('No photos provided');
         }
 
         if (files.length > 6) {
@@ -242,6 +256,12 @@ export class AppService {
             // Delete uploaded files if not authorized
             files.forEach(file => fs.unlinkSync(file.path));
             throw new ForbiddenException('You can only upload photos to your own listings');
+        }
+
+        // For listings with no photos yet, require at least 2 on first upload
+        if (listing.images.length === 0 && files.length < 2) {
+            files.forEach(file => fs.unlinkSync(file.path));
+            throw new BadRequestException('Minimum 2 photos required for the first upload');
         }
 
         // Check if listing already has photos (max 6 total)

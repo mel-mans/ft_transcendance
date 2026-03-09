@@ -135,6 +135,35 @@ export const setCurrentUser = (profile: UserProfile): void => {
   saveProfile(profile);
 };
 
+// Remove profiles that represent the current user (stale duplicates from old sessions)
+export const purgeSelfFromStoredProfiles = (currentUser: UserProfile): void => {
+  const selfId = String(currentUser.id ?? "").trim();
+  const selfUsername = String(currentUser.username ?? "").trim().toLowerCase();
+  const selfName = String(currentUser.name ?? "").trim().toLowerCase();
+  const selfLocation = String(currentUser.location ?? "").trim().toLowerCase();
+  const selfBio = String(currentUser.bio ?? "").trim().toLowerCase();
+  const selfAvatar = String(currentUser.avatar ?? "").trim();
+
+  const sanitized = getProfiles().filter((profile) => {
+    const id = String(profile.id ?? "").trim();
+    const username = String(profile.username ?? "").trim().toLowerCase();
+    const name = String(profile.name ?? "").trim().toLowerCase();
+    const location = String(profile.location ?? "").trim().toLowerCase();
+    const bio = String(profile.bio ?? "").trim().toLowerCase();
+    const avatar = String(profile.avatar ?? "").trim();
+
+    const sameById = Boolean(selfId) && id === selfId;
+    const sameByUsername = Boolean(selfUsername) && username === selfUsername;
+    const sameByCore = Boolean(selfName) && Boolean(selfLocation) && name === selfName && location === selfLocation;
+    const sameByContent = Boolean(selfName) && Boolean(selfBio) && name === selfName && bio === selfBio;
+    const sameByAvatar = Boolean(selfAvatar) && Boolean(selfName) && avatar === selfAvatar && name === selfName;
+
+    return !(sameById || sameByUsername || sameByCore || sameByContent || sameByAvatar);
+  });
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
+};
+
 // Calculate match score between two users (0-100)
 export const calculateMatchScore = (user1: UserPreferences, user2: UserPreferences): number => {
   const safeUser1 = normalizePreferences(user1 || DEFAULT_PREFERENCES);
@@ -153,7 +182,11 @@ export const calculateMatchScore = (user1: UserPreferences, user2: UserPreferenc
 
 // Get matched profiles sorted by compatibility
 export const getMatchedProfiles = (currentUser: UserProfile): Array<UserProfile & { matchScore: number }> => {
-  const profiles = getProfiles().filter(p => p.id !== currentUser.id);
+  const currentUserId = String(currentUser.id ?? "").trim();
+  const profiles = getProfiles().filter((p) => {
+    const profileId = String(p.id ?? "").trim();
+    return profileId.length > 0 && profileId !== currentUserId;
+  });
   
   return profiles
     .map(profile => ({

@@ -6,6 +6,7 @@ import ChatPopup from "@/components/ChatPopup";
 import PageLayout from "@/components/PageLayout";
 import api from "@/lib/api";
 import { resolveAvatar } from "@/lib/avatar";
+import { useAuth } from "@/lib/auth";
 
 const PREF_LABELS: Record<string, { emoji: string; label: string }> = {
   smoker: { emoji: "🚬", label: "Smoker" },
@@ -43,6 +44,7 @@ const toRoommateCard = (user: any) => {
 };
 
 const LoggedInRoommates = () => {
+  const { user: authUser } = useAuth();
   const [users, setUsers] = useState<ReturnType<typeof toRoommateCard>[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);

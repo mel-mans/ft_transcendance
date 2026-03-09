@@ -2,6 +2,7 @@ all: certs up dirs
 
 dirs:
 	sudo mkdir -p uploads/avatars uploads/listings
+	sudo chmod -R 777 uploads/
 
 certs:
 	@chmod +x ./infrastructure/nginx/certs/generate_certs.sh

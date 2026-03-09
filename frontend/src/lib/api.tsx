@@ -116,11 +116,7 @@ export async function fetchCurrentUser() {
   try {
     return await axiosInstance.get(API.users.me);
   } catch {
-    try {
-      return await axiosInstance.get(API.auth.profile);
-    } catch {
-      return null;
-    }
+    return null;
   }
 }
 
@@ -158,7 +154,12 @@ export async function uploadAvatar(file: File) {
   formData.append("file", file);
   return axiosInstance.post<{ message: string; avatar: string; user: any }>(
     API.users.avatar,
-    formData
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
   );
 }
 
@@ -301,7 +302,12 @@ export async function uploadListingPhotos(id: number, files: File[]) {
   files.forEach((file) => formData.append("files", file));
   return axiosInstance.post<{ message: string; listing: ListingDto }>(
     API.listings.photos(id),
-    formData
+    formData,
+    {
+      headers: {
+        "Content-Type": undefined, // Let axios set multipart/form-data with boundary
+      },
+    }
   );
 }
 
@@ -324,6 +330,31 @@ export async function fetchChatInbox() {
 
 export async function markChatThreadRead(withUserId: number) {
   return axiosInstance.post<{ updated: number }>(API.chat.messages.markRead(withUserId));
+}
+
+export interface AIUserProfile {
+  user_id: number;
+  budget_max: number;
+  cleanliness: number;
+  sleep_schedule: "early_bird" | "night_owl";
+  smoker: boolean;
+  has_pets: boolean;
+}
+
+export interface AIMatchRequest {
+  target_user: AIUserProfile;
+  candidates: AIUserProfile[];
+}
+
+export interface AIMatchResult {
+  best_match_id: number;
+  confidence_score: number;
+  algorithm_used: string;
+  exploration: boolean;
+}
+
+export async function getAIMatch(request: AIMatchRequest) {
+  return axiosInstance.post<AIMatchResult>(API.ai.match, request);
 }
 
 export async function generateBioWithAI(userId: number | string, payload: GenerateBioPayload) {
@@ -358,6 +389,7 @@ export default {
   markChatThreadRead,
   fetchChatMessages,
   sendChatMessage,
+  getAIMatch,
   generateBioWithAI,
 };
 

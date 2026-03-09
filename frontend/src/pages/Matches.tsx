@@ -10,11 +10,37 @@ import { Slider } from "@/components/ui/slider";
 import {
   UserProfile,
   getCurrentUser,
-  getMatchedProfiles,
 } from "@/lib/matching";
 import { resolveAvatar } from "@/lib/avatar";
 import { useAuth } from '@/lib/auth';
+import api, { type AIUserProfile } from "@/lib/api";
 import { Settings, Sparkles, Zap } from "lucide-react";
+
+const extractNumericBudget = (value: unknown): number => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  if (typeof value === "string") {
+    const parsed = Number.parseInt(value.replace(/[^\d]/g, ""), 10);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+};
+
+const toAIProfile = (u: any): AIUserProfile | null => {
+  if (!u?.id) return null;
+
+  const prefs = u.preferences || {};
+  const budget = extractNumericBudget(prefs.budget ?? u.budget);
+  if (budget <= 0) return null;
+
+  return {
+    user_id: Number(u.id),
+    budget_max: budget,
+    cleanliness: (prefs.clean ?? u.clean) ? 5 : 3,
+    sleep_schedule: (prefs.nightOwl ?? u.nightOwl) ? "night_owl" : "early_bird",
+    smoker: Boolean(prefs.smoker ?? prefs.smoking ?? u.smoker ?? u.smoking),
+    has_pets: Boolean(prefs.petFriendly ?? prefs.petsOk ?? u.petFriendly ?? u.petsOk),
+  };
+};
 
 const Matches = () => {
   const DEFAULT_MATCH_THRESHOLD = 66;
@@ -26,7 +52,12 @@ const Matches = () => {
   const [chatUser, setChatUser] = useState<{ id?: string | number; name: string; avatar: string } | null>(null);
   const { user: authUser } = useAuth();
 
-  const filteredMatches = matches.filter((match) => match.matchScore > matchThreshold);
+  const selfId = String(currentUser?.id ?? authUser?.id ?? "").trim();
+  const filteredMatches = matches.filter((match) => {
+    const matchId = String(match.id ?? "").trim();
+    const isNotSelf = !selfId || matchId !== selfId;
+    return isNotSelf && match.matchScore >= matchThreshold;
+  });
 
   const updateThreshold = (value: number) => {
     if (Number.isNaN(value)) return;
@@ -70,22 +101,105 @@ const Matches = () => {
   };
 
   useEffect(() => {
-    const authNormalizedUser = normalizeUserProfile(authUser);
-    const localUser = normalizeUserProfile(getCurrentUser());
-    const user = authNormalizedUser || localUser;
-    setCurrentUser(user);
+    (async () => {
+      const authNormalizedUser = normalizeUserProfile(authUser);
+      const localUser = normalizeUserProfile(getCurrentUser());
+      const user = authNormalizedUser || localUser;
+      setCurrentUser(user);
 
-    if (user) {
-      const matched = getMatchedProfiles(user);
-      setMatches(matched);
-    }
+      if (user) {
+        try {
+          const allUsers = await api.fetchAllUsers();
+
+          const targetAI = toAIProfile(user);
+
+          // Get AI-powered matches with ML recommendations
+          const matchedProfiles: Array<UserProfile & { matchScore: number }> = [];
+          
+          for (const candidate of allUsers) {
+            const normalized = normalizeUserProfile(candidate);
+            if (!normalized) continue;
+            
+            const candidateAI = toAIProfile(candidate);
+            let matchScore = 50; // Default fallback score
+            
+            if (targetAI && candidateAI) {
+              try {
+                const result = await api.getAIMatch({
+                  target_user: targetAI,
+                  candidates: [candidateAI],
+                });
+                
+                if (result.best_match_id === candidateAI.user_id) {
+                  matchScore = Math.round(result.confidence_score * 100);
+                }
+              } catch (err) {
+                // Use default fallback score
+                console.warn('AI match failed for user', candidateAI.user_id, err);
+              }
+            }
+            
+            matchedProfiles.push({
+              ...normalized,
+              matchScore,
+            });
+          }
+
+          matchedProfiles.sort((a, b) => b.matchScore - a.matchScore);
+          setMatches(matchedProfiles);
+        } catch (err) {
+          console.error('Failed to fetch AI matches:', err);
+          setMatches([]);
+        }
+      }
+    })();
   }, [authUser]);
 
-  const handleProfileComplete = (profile: UserProfile) => {
+  const handleProfileComplete = async (profile: UserProfile) => {
     setCurrentUser(profile);
     setShowSetup(false);
-    const matched = getMatchedProfiles(profile);
-    setMatches(matched);
+    
+    try {
+      const allUsers = await api.fetchAllUsers();
+
+      const targetAI = toAIProfile(profile);
+
+      const matchedProfiles: Array<UserProfile & { matchScore: number }> = [];
+      
+      for (const candidate of allUsers) {
+        const normalized = normalizeUserProfile(candidate);
+        if (!normalized) continue;
+        
+        const candidateAI = toAIProfile(candidate);
+        let matchScore = 50; // Default fallback score
+        
+        if (targetAI && candidateAI) {
+          try {
+            const result = await api.getAIMatch({
+              target_user: targetAI,
+              candidates: [candidateAI],
+            });
+            
+            if (result.best_match_id === candidateAI.user_id) {
+              matchScore = Math.round(result.confidence_score * 100);
+            }
+          } catch (err) {
+            console.warn('AI match failed for user', candidateAI.user_id, err);
+          }
+        }
+        
+        matchedProfiles.push({
+          ...normalized,
+          matchScore,
+        });
+      }
+
+      matchedProfiles.sort((a, b) => b.matchScore - a.matchScore);
+      setMatches(matchedProfiles);
+    } catch (err) {
+      console.error('Failed to fetch AI matches:', err);
+      setMatches([]);
+    }
   };
 
   const handleChatClick = (user: { id?: string | number; name: string; avatar: string }) => {
