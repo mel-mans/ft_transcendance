@@ -71,6 +71,15 @@ const normalizeProfile = (profile: any): UserProfile | null => {
   };
 };
 
+const isRenderableProfile = (profile: UserProfile): boolean => {
+  if (!profile.id || profile.id.startsWith(DEMO_PROFILE_ID_PREFIX)) return false;
+  if (!profile.name?.trim()) return false;
+  if (!profile.location?.trim()) return false;
+  if (!profile.bio?.trim()) return false;
+  if (!Number.isFinite(profile.age) || profile.age < 18 || profile.age > 100) return false;
+  return true;
+};
+
 const STORAGE_KEY = "42roommates_profiles";
 const CURRENT_USER_KEY = "42roommates_current_user";
 const DEMO_PROFILE_ID_PREFIX = "sample";
@@ -88,8 +97,7 @@ export const getProfiles = (): UserProfile[] => {
       .filter(
         (profile): profile is UserProfile =>
           profile !== null &&
-          Boolean(profile.id) &&
-          !profile.id.startsWith(DEMO_PROFILE_ID_PREFIX)
+          isRenderableProfile(profile)
       );
   } catch {
     return [];
@@ -127,6 +135,35 @@ export const setCurrentUser = (profile: UserProfile): void => {
   saveProfile(profile);
 };
 
+// Remove profiles that represent the current user (stale duplicates from old sessions)
+export const purgeSelfFromStoredProfiles = (currentUser: UserProfile): void => {
+  const selfId = String(currentUser.id ?? "").trim();
+  const selfUsername = String(currentUser.username ?? "").trim().toLowerCase();
+  const selfName = String(currentUser.name ?? "").trim().toLowerCase();
+  const selfLocation = String(currentUser.location ?? "").trim().toLowerCase();
+  const selfBio = String(currentUser.bio ?? "").trim().toLowerCase();
+  const selfAvatar = String(currentUser.avatar ?? "").trim();
+
+  const sanitized = getProfiles().filter((profile) => {
+    const id = String(profile.id ?? "").trim();
+    const username = String(profile.username ?? "").trim().toLowerCase();
+    const name = String(profile.name ?? "").trim().toLowerCase();
+    const location = String(profile.location ?? "").trim().toLowerCase();
+    const bio = String(profile.bio ?? "").trim().toLowerCase();
+    const avatar = String(profile.avatar ?? "").trim();
+
+    const sameById = Boolean(selfId) && id === selfId;
+    const sameByUsername = Boolean(selfUsername) && username === selfUsername;
+    const sameByCore = Boolean(selfName) && Boolean(selfLocation) && name === selfName && location === selfLocation;
+    const sameByContent = Boolean(selfName) && Boolean(selfBio) && name === selfName && bio === selfBio;
+    const sameByAvatar = Boolean(selfAvatar) && Boolean(selfName) && avatar === selfAvatar && name === selfName;
+
+    return !(sameById || sameByUsername || sameByCore || sameByContent || sameByAvatar);
+  });
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
+};
+
 // Calculate match score between two users (0-100)
 export const calculateMatchScore = (user1: UserPreferences, user2: UserPreferences): number => {
   const safeUser1 = normalizePreferences(user1 || DEFAULT_PREFERENCES);
@@ -145,7 +182,11 @@ export const calculateMatchScore = (user1: UserPreferences, user2: UserPreferenc
 
 // Get matched profiles sorted by compatibility
 export const getMatchedProfiles = (currentUser: UserProfile): Array<UserProfile & { matchScore: number }> => {
-  const profiles = getProfiles().filter(p => p.id !== currentUser.id);
+  const currentUserId = String(currentUser.id ?? "").trim();
+  const profiles = getProfiles().filter((p) => {
+    const profileId = String(p.id ?? "").trim();
+    return profileId.length > 0 && profileId !== currentUserId;
+  });
   
   return profiles
     .map(profile => ({

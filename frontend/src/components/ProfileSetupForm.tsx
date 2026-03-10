@@ -4,10 +4,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as UiCalendar } from "@/components/ui/calendar";
 import { UserPreferences, UserProfile, setCurrentUser } from "@/lib/matching";
 import CurrencySelect from "@/components/CurrencySelect";
 import api, { CompleteProfilePayload } from "@/lib/api";
 import { resolveAvatar } from "@/lib/avatar";
+import { useAuth } from "@/lib/auth";
+import { toast } from "@/components/ui/sonner";
+import { CalendarDays } from "lucide-react";
 
 interface PreferenceOption {
   key: keyof UserPreferences;
@@ -53,12 +58,29 @@ const extractBudgetValue = (value?: string) => {
   return numeric || "";
 };
 
+const toLocalDateString = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const parseLocalDate = (value: string) => {
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  const parsed = new Date(year, month - 1, day);
+  if (Number.isNaN(parsed.getTime())) return null;
+  parsed.setHours(0, 0, 0, 0);
+  return parsed;
+};
+
 interface ProfileSetupFormProps {
   onComplete: (profile: UserProfile) => void;
   existingProfile?: UserProfile | null;
 }
 
 const ProfileSetupForm = ({ onComplete, existingProfile }: ProfileSetupFormProps) => {
+  const { user: authUser } = useAuth();
   const [username, setUsername] = useState(existingProfile?.username || "");
   const [name, setName] = useState(existingProfile?.name || "");
   const [sex, setSex] = useState(existingProfile?.sex || "");
@@ -71,7 +93,13 @@ const ProfileSetupForm = ({ onComplete, existingProfile }: ProfileSetupFormProps
   const [avatarPreview, setAvatarPreview] = useState(resolveAvatar(existingProfile?.avatar));
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [generatingBio, setGeneratingBio] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayDateString = toLocalDateString(today);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -103,6 +131,67 @@ const ProfileSetupForm = ({ onComplete, existingProfile }: ProfileSetupFormProps
     setPreferences(prev => ({ ...prev, [key]: checked }));
   };
 
+  const handleGenerateBio = async () => {
+    const userId = authUser?.id || existingProfile?.id;
+    if (!userId) {
+      toast.error("Please log in before generating a bio.");
+      return;
+    }
+
+    const selectedHobbies = [
+      preferences.cooking ? "cooking" : "",
+      preferences.gaming ? "gaming" : "",
+      preferences.social ? "socializing" : "",
+      preferences.studious ? "studying" : "",
+    ].filter(Boolean);
+
+    const selectedPersonality = [
+      preferences.clean ? "clean" : "",
+      preferences.quietHours ? "quiet" : "",
+      preferences.earlyBird ? "early bird" : "",
+      preferences.nightOwl ? "night owl" : "",
+      preferences.smoking ? "smoker" : "",
+    ].filter(Boolean);
+
+    const hobbies = selectedHobbies.join(", ") || "reading, movies";
+    const personality = selectedPersonality.join(", ") || "friendly, respectful";
+    const lifestyle = [
+      location.trim() ? `prefers ${location.trim()}` : "",
+      moveInDate ? `move-in around ${moveInDate}` : "",
+      budget ? `budget around ${budget} ${currency}` : "",
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    setGeneratingBio(true);
+    try {
+      const result = await api.generateBioWithAI(userId, {
+        hobbies,
+        personality,
+        lifestyle,
+        looking_for: "a compatible and respectful roommate",
+      });
+      setBio(result.bio || "");
+      toast.success("Bio generated successfully.");
+    } catch (err: any) {
+      if (err?.status === 429) {
+        toast.error("Please wait a few seconds before generating again.");
+        return;
+      }
+      if (err?.status === 401) {
+        toast.error("Unauthorized. Please log in again.");
+        return;
+      }
+      if (err?.status === 422) {
+        toast.error("Please complete your profile preferences before generating.");
+        return;
+      }
+      toast.error(err?.message || "Failed to generate bio.");
+    } finally {
+      setGeneratingBio(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -122,6 +211,17 @@ const ProfileSetupForm = ({ onComplete, existingProfile }: ProfileSetupFormProps
 
     if (Number.isNaN(budgetInt) || budgetInt <= 0) {
       setError("Budget must be a valid number.");
+      return;
+    }
+
+    const selectedMoveInDate = parseLocalDate(moveInDate);
+    if (!selectedMoveInDate) {
+      setError("Please choose a valid move-in date.");
+      return;
+    }
+
+    if (selectedMoveInDate < today) {
+      setError("Move-in date cannot be earlier than today.");
       return;
     }
 
@@ -302,13 +402,53 @@ const ProfileSetupForm = ({ onComplete, existingProfile }: ProfileSetupFormProps
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="moveInDate">Move-in Date</Label>
-              <Input
-                id="moveInDate"
+              <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                <PopoverTrigger asChild>
+                  <Input
+                    id="moveInDate"
+                    value={moveInDate}
+                    onFocus={() => setIsDatePickerOpen(true)}
+                    onClick={() => setIsDatePickerOpen(true)}
+                    onChange={() => {}}
+                    readOnly
+                    required
+                    placeholder="Select date"
+                    className="bg-white/5 border-white/10"
+                  />
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 border-white/10 bg-popover" align="start">
+                  <UiCalendar
+                    mode="single"
+                    selected={moveInDate ? parseLocalDate(moveInDate) || undefined : undefined}
+                    onSelect={(date) => {
+                      if (!date) return;
+                      const normalized = new Date(date);
+                      normalized.setHours(0, 0, 0, 0);
+                      if (normalized < today) return;
+                      setMoveInDate(toLocalDateString(normalized));
+                      setIsDatePickerOpen(false);
+                    }}
+                    disabled={(date) => {
+                      const normalized = new Date(date);
+                      normalized.setHours(0, 0, 0, 0);
+                      return normalized < today;
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <CalendarDays className="w-3.5 h-3.5" />
+                <span>Choose today or a future date.</span>
+              </div>
+              <input
                 type="date"
                 value={moveInDate}
+                min={todayDateString}
                 onChange={(e) => setMoveInDate(e.target.value)}
-                required
-                className="bg-white/5 border-white/10"
+                className="sr-only"
+                tabIndex={-1}
+                aria-hidden="true"
               />
             </div>
             <div className="space-y-2">
@@ -339,6 +479,15 @@ const ProfileSetupForm = ({ onComplete, existingProfile }: ProfileSetupFormProps
               rows={3}
               className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleGenerateBio}
+              disabled={generatingBio}
+              className="w-full sm:w-auto"
+            >
+              {generatingBio ? "Generating bio..." : "✨ Generate with AI"}
+            </Button>
           </div>
 
           {/* Preferences */}

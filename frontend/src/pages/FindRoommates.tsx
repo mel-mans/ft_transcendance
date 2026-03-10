@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth";
 const exampleUsers = [
   {
     id: 2,
+    username: "alex42",
     name: "Alex",
     age: 24,
     location: "Paris 13e",
@@ -29,6 +30,7 @@ const exampleUsers = [
   },
   {
     id: 3,
+    username: "sofia_dev",
     name: "Sofia",
     age: 22,
     location: "Paris 14e",
@@ -46,6 +48,7 @@ const exampleUsers = [
   },
   {
     id: 4,
+    username: "marcus_code",
     name: "Marcus",
     age: 26,
     location: "Paris 15e",
@@ -99,6 +102,7 @@ const FindRoommates = () => {
                   user={user}
                   blackBackground
                   onChatClick={handleChatClick}
+                  chatDisabled
                 />
               ))}
             </div>

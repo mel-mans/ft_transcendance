@@ -8,6 +8,7 @@ interface Preference {
 
 interface UserProfile {
   id?: string | number;
+  username?: string;
   name: string;
   age: number;
   location: string;
@@ -22,16 +23,22 @@ interface UserProfileCardProps {
   user: UserProfile;
   onChatClick?: (user: { id?: string | number; name: string; avatar: string }) => void;
   blackBackground?: boolean;
+  chatDisabled?: boolean;
+  fixedSize?: boolean;
 }
 
 const UserProfileCard = ({
   user,
   onChatClick,
   blackBackground = false,
+  chatDisabled = false,
+  fixedSize = true,
 }: UserProfileCardProps) => {
   return (
     <div
-      className={`rounded-2xl p-4 hover:scale-[1.02] transition-all duration-300 ${
+      className={`rounded-2xl p-4 hover:scale-[1.02] transition-all duration-300 overflow-hidden ${
+        fixedSize ? "w-[624px] h-[252.5px]" : ""
+      } ${
         blackBackground ? "bg-black" : "glass"
       }`}
     >
@@ -44,6 +51,9 @@ const UserProfileCard = ({
         />
         <div className="flex-1">
           <h3 className="text-lg font-bold text-foreground">{user.name}, {user.age}</h3>
+          {user.username && (
+            <div className="text-xs text-primary/80 mb-0.5">@{user.username}</div>
+          )}
           <div className="flex items-center gap-1 text-muted-foreground text-xs">
             <MapPin className="w-3 h-3" />
             <span>{user.location}</span>
@@ -52,6 +62,7 @@ const UserProfileCard = ({
         <Button 
           variant="outline" 
           size="icon"
+          disabled={chatDisabled}
           onClick={() => onChatClick?.({ id: user.id, name: user.name, avatar: user.avatar })}
           className="shrink-0"
         >

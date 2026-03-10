@@ -4,8 +4,11 @@ import Footer from "@/components/Footer";
 import UserProfileCard from "@/components/UserProfileCard";
 import ChatPopup from "@/components/ChatPopup";
 import PageLayout from "@/components/PageLayout";
+import { Input } from "@/components/ui/input";
 import api from "@/lib/api";
 import { resolveAvatar } from "@/lib/avatar";
+import { useAuth } from "@/lib/auth";
+import { Search } from "lucide-react";
 
 const PREF_LABELS: Record<string, { emoji: string; label: string }> = {
   smoker: { emoji: "🚬", label: "Smoker" },
@@ -28,6 +31,7 @@ const toRoommateCard = (user: any) => {
 
   return {
     id: user.id,
+    username: user.username || "",
     name: user.name || user.username || `User ${user.id}`,
     age: user.age || 0,
     location: prefs.location || "Unknown",
@@ -43,7 +47,9 @@ const toRoommateCard = (user: any) => {
 };
 
 const LoggedInRoommates = () => {
+  const { user: authUser } = useAuth();
   const [users, setUsers] = useState<ReturnType<typeof toRoommateCard>[]>([]);
+  const [searchUsername, setSearchUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatUser, setChatUser] = useState<{ id?: string | number; name: string; avatar: string } | null>(null);
@@ -64,6 +70,12 @@ const LoggedInRoommates = () => {
     setChatOpen(true);
   };
 
+  const normalizedQuery = searchUsername.trim().toLowerCase();
+  const filteredUsers = users.filter((roommate) => {
+    if (!normalizedQuery) return true;
+    return String(roommate.username || "").toLowerCase().includes(normalizedQuery);
+  });
+
   return (
     <PageLayout>
       <Navbar />
@@ -75,9 +87,21 @@ const LoggedInRoommates = () => {
             </h1>
           </div>
 
-          {users.length > 0 ? (
+          <div className="mb-5">
+            <div className="relative">
+              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+              <Input
+                value={searchUsername}
+                onChange={(e) => setSearchUsername(e.target.value)}
+                placeholder="Search roommates by username"
+                className="pl-9 bg-white/5 border-white/10"
+              />
+            </div>
+          </div>
+
+          {filteredUsers.length > 0 ? (
             <div className="space-y-4">
-              {users.map((user, index) => (
+              {filteredUsers.map((user, index) => (
                 <UserProfileCard
                   key={user.id ?? index}
                   user={user}
@@ -89,7 +113,7 @@ const LoggedInRoommates = () => {
           ) : (
             <div className="glass rounded-2xl p-8 text-center">
               <p className="text-muted-foreground">
-                {error || "No roommate profiles available right now."}
+                {error || "No roommate profiles found for that username."}
               </p>
             </div>
           )}

@@ -74,7 +74,15 @@ class ChatMessage(BaseModel):
     message: str
 
 # ==========================================
-# 3. MATCHMAKER ENDPOINTS (RECOMMENDATION MODULE)
+# 3. HEALTH / ROOT ENDPOINT
+# ==========================================
+@app.get("/api/ai")
+@app.get("/api/ai/")
+def ai_health():
+    return {"service": "ai", "status": "running"}
+
+# ==========================================
+# 4. MATCHMAKER ENDPOINTS (RECOMMENDATION MODULE)
 # ==========================================
 @app.post("/api/ai/match")
 def get_match(request: MatchRequest):

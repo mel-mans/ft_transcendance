@@ -65,14 +65,8 @@ export function AuthProvider({ children }: any) {
   };
 
   const completeOAuthLogin = async () => {
-    try {
-      const me = await api.get(API.users.me);
-      setUser(me);
-      return;
-    } catch {
-      const fallback = await api.get(API.auth.profile);
-      setUser(fallback?.user ?? fallback);
-    }
+    const me = await api.get(API.users.me);
+    setUser(me);
   };
 
   const logout = async () => {

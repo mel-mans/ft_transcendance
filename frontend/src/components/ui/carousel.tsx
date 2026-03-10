@@ -291,7 +291,8 @@ const CarouselContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HT
     if (variant === "cone-vertical") {
       const count = Math.max(items.length, 1);
       const angleStep = 360 / count;
-      const baseRadius = 180;
+      const ringRadius = count === 4 ? 125 : 190;
+      const polygonOffset = count === 4 ? 45 : 0;
 
       const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
         isDraggingRef.current = true;
@@ -322,8 +323,8 @@ const CarouselContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HT
 
       return (
         <div ref={carouselRef} className="overflow-visible">
-          <div className="pointer-events-none absolute bottom-1 left-1/2 h-10 w-56 -translate-x-1/2 rounded-full bg-primary/25 blur-2xl" />
-          <div className="pointer-events-none absolute bottom-4 left-1/2 h-6 w-72 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
+          <div className="pointer-events-none absolute bottom-1 left-1/2 h-10 w-56 -translate-x-1/2 rounded-full bg-primary/12 blur-2xl" />
+          <div className="pointer-events-none absolute bottom-4 left-1/2 h-6 w-72 -translate-x-1/2 rounded-full bg-primary/8 blur-3xl" />
           <div
             ref={ref}
             className={cn(
@@ -339,7 +340,7 @@ const CarouselContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HT
             <div
               className="absolute inset-0 [transform-style:preserve-3d]"
               style={{
-                transform: `rotateX(-12deg) rotateY(${rotation}deg)`,
+                transform: `rotateX(-12deg) rotateY(${rotation}deg) rotateZ(8deg)`,
                 transition: isDraggingRef.current ? "none" : undefined,
               }}
             >
@@ -348,20 +349,17 @@ const CarouselContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HT
                   return child;
                 }
 
-                const angle = index * angleStep;
-                const yOffset = -index * 8;
-                const itemRadius = baseRadius - index * 8;
-                const scale = 1 - index * 0.03;
+                const angle = index * angleStep + polygonOffset;
                 const childStyle = (child.props as { style?: React.CSSProperties }).style;
 
                 return React.cloneElement(child as React.ReactElement, {
                   className: cn(
-                    "absolute left-1/2 top-1/2 w-full max-w-[10rem] sm:max-w-[11rem] md:max-w-[12rem] -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 ease-out will-change-transform [filter:drop-shadow(0_0_18px_rgba(34,197,94,0.24))]",
+                    "absolute left-1/2 top-1/2 w-full max-w-[10rem] sm:max-w-[11rem] md:max-w-[12rem] -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 ease-out will-change-transform [filter:drop-shadow(0_0_12px_rgba(34,197,94,0.14))]",
                     (child.props as { className?: string }).className,
                   ),
                   style: {
                     ...childStyle,
-                    transform: `translate(-50%, -50%) rotateY(${angle}deg) translateZ(${itemRadius}px) translateY(${yOffset}px) scale(${scale})`,
+                    transform: `translate(-50%, -50%) rotateY(${angle}deg) translateZ(${ringRadius}px)`,
                   },
                 });
               })}
@@ -370,7 +368,7 @@ const CarouselContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HT
             <div
               className="pointer-events-none absolute bottom-2 left-1/2 h-3 w-56 -translate-x-1/2 rounded-full opacity-40"
               style={{
-                background: "radial-gradient(ellipse, hsl(var(--primary) / 0.4) 0%, transparent 70%)",
+                background: "radial-gradient(ellipse, hsl(var(--primary) / 0.2) 0%, transparent 70%)",
               }}
             />
           </div>

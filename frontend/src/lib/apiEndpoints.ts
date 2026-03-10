@@ -3,6 +3,7 @@ const API_PREFIXES = {
   users: '/api/users',
   chat: '/api/chat',
   listings: '/api/listings',
+  ai: '/api/ai',
 };
 
 export const API_ENDPOINTS = {
@@ -38,11 +39,19 @@ export const API_ENDPOINTS = {
   listings: {
     root: `${API_PREFIXES.listings}/`,
     all: `${API_PREFIXES.listings}/all`,
+    recommendations: `${API_PREFIXES.listings}/recommendations`,
     myListings: `${API_PREFIXES.listings}/my-listings`,
     byId: (id: number | string) => `${API_PREFIXES.listings}/${id}`,
     photos: (id: number | string) => `${API_PREFIXES.listings}/${id}/photos`,
     photoByIndex: (id: number | string, photoIndex: number) =>
       `${API_PREFIXES.listings}/${id}/photos/${photoIndex}`,
+  },
+  ai: {
+    root: `${API_PREFIXES.ai}/`,
+    match: `${API_PREFIXES.ai}/match`,
+    feedback: `${API_PREFIXES.ai}/feedback`,
+    modelStatus: `${API_PREFIXES.ai}/model/status`,
+    generateBio: `${API_PREFIXES.ai}/generate-bio`,
   },
 };
 

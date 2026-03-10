@@ -116,11 +116,7 @@ export async function fetchCurrentUser() {
   try {
     return await axiosInstance.get(API.users.me);
   } catch {
-    try {
-      return await axiosInstance.get(API.auth.profile);
-    } catch {
-      return null;
-    }
+    return null;
   }
 }
 
@@ -160,7 +156,9 @@ export async function uploadAvatar(file: File) {
     API.users.avatar,
     formData,
     {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     }
   );
 }
@@ -240,6 +238,29 @@ export interface ListingDto {
   updatedAt: string;
 }
 
+export interface ListingRecommendationsResponse {
+  recommendation?: ListingDto | null;
+  aiScore?: number;
+  algorithm?: "content_fallback" | "online_ml" | "collaborative" | string;
+  exploration?: boolean;
+  allListings?: ListingDto[];
+  recommendations?: ListingDto[];
+  message?: string;
+}
+
+export interface GenerateBioPayload {
+  hobbies: string;
+  personality: string;
+  lifestyle?: string;
+  looking_for?: string;
+}
+
+export interface GenerateBioResponse {
+  bio: string;
+  length: number;
+  generated_at: string;
+}
+
 export async function createListing(payload: CreateListingPayload) {
   return axiosInstance.post<{ message: string; listing: ListingDto }>(
     API.listings.root,
@@ -253,6 +274,12 @@ export async function fetchMyListings() {
 
 export async function fetchAllListings() {
   return axiosInstance.get<ListingDto[]>(API.listings.all);
+}
+
+export async function fetchListingRecommendations() {
+  return axiosInstance.get<ListingRecommendationsResponse>(
+    API.listings.recommendations
+  );
 }
 
 export async function fetchAllUsers() {
@@ -277,7 +304,9 @@ export async function uploadListingPhotos(id: number, files: File[]) {
     API.listings.photos(id),
     formData,
     {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: {
+        "Content-Type": undefined, // Let axios set multipart/form-data with boundary
+      },
     }
   );
 }
@@ -303,6 +332,39 @@ export async function markChatThreadRead(withUserId: number) {
   return axiosInstance.post<{ updated: number }>(API.chat.messages.markRead(withUserId));
 }
 
+export interface AIUserProfile {
+  user_id: number;
+  budget_max: number;
+  cleanliness: number;
+  sleep_schedule: "early_bird" | "night_owl";
+  smoker: boolean;
+  has_pets: boolean;
+}
+
+export interface AIMatchRequest {
+  target_user: AIUserProfile;
+  candidates: AIUserProfile[];
+}
+
+export interface AIMatchResult {
+  best_match_id: number;
+  confidence_score: number;
+  algorithm_used: string;
+  exploration: boolean;
+}
+
+export async function getAIMatch(request: AIMatchRequest) {
+  return axiosInstance.post<AIMatchResult>(API.ai.match, request);
+}
+
+export async function generateBioWithAI(userId: number | string, payload: GenerateBioPayload) {
+  return axiosInstance.post<GenerateBioResponse>(API.ai.generateBio, payload, {
+    headers: {
+      "X-User-Id": String(userId),
+    },
+  });
+}
+
 /* ================================
    EXPORT
 ================================ */
@@ -319,6 +381,7 @@ export default {
   fetchAllUsers,
   fetchMyListings,
   fetchAllListings,
+  fetchListingRecommendations,
   updateListing,
   deleteListing,
   uploadListingPhotos,
@@ -326,6 +389,8 @@ export default {
   markChatThreadRead,
   fetchChatMessages,
   sendChatMessage,
+  getAIMatch,
+  generateBioWithAI,
 };
 
 export const api = axiosInstance;
