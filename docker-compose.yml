@@ -2,7 +2,7 @@ services:
   #------------------------------------nginx------------------------------------#
   nginx:
     container_name: nginx
-    image: nginx
+    image: localhost:5555/nginx:latest
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     build: infrastructure/nginx
     restart: unless-stopped
@@ -37,7 +37,7 @@ services:
     container_name: front
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     build: frontend
-    image: front
+    image: localhost:5555/front:latest
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://front:3003" ]
@@ -65,7 +65,7 @@ services:
       context: .
       dockerfile: services/auth/Dockerfile
     restart: unless-stopped
-    image: auth
+    image: localhost:5555/auth:latest
     volumes:
       - ./prisma:/app/prisma
     healthcheck:
@@ -95,7 +95,7 @@ services:
       context: .
       dockerfile: services/chat/Dockerfile
     platform: ${DOCKER_PLATFORM:-linux/amd64}
-    image: chat
+    image: localhost:5555/chat:latest
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://chat:3001/api/chat" ]
@@ -126,7 +126,7 @@ services:
       context: .
       dockerfile: services/user_management/Dockerfile
     platform: ${DOCKER_PLATFORM:-linux/amd64}
-    image: user
+    image: localhost:5555/user:latest
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://user:3002/api/users" ]
@@ -158,7 +158,7 @@ services:
       context: .
       dockerfile: services/listings/Dockerfile
     platform: ${DOCKER_PLATFORM:-linux/amd64}
-    image: listings
+    image: localhost:5555/listings:latest
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://listings:3005/api/listings" ]
@@ -186,7 +186,7 @@ services:
         condition: service_healthy
   #------postgres service------#
   postgres:
-    image: postgres:16
+    image: localhost:5555/postgres:latest
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     container_name: postgres_db
     restart: unless-stopped
@@ -217,7 +217,7 @@ services:
       context: .
       dockerfile: services/ai/Dockerfile
     platform: ${DOCKER_PLATFORM:-linux/amd64}
-    image: ai
+    image: localhost:5555/ai:latest
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "curl", "-f", http://ai:3006/api/ai/model/status ]
