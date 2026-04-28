@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database-deployment
+  labels:
+    app: database
+spec:
+  replicas: {{ .Values.backend.database.replicaCount }}
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+      - name: database
+        image: "{{ .Values.backend.database.image.repository }}:{{ .Values.backend.database.image.tag }}"
+        imagePullPolicy: {{ .Values.backend.database.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.backend.database.service.port }}
+        env:
+      # Use individual mapping for the password since it comes from a Secret
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: transcendence-secrets
+              key: DB_PASS
+    # Use envFrom to pull in everything else (DB_USER, DB_NAME, etc.)
+        envFrom:
+          - configMapRef:
+              name: transcendence-config

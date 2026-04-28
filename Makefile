@@ -10,6 +10,32 @@ certs:
 up:
 	docker compose up --build -d
 
+USER        = ibougajd
+IMAGES      = ai chat user listings postgres nginx front auth
+TAG         = latest
+
+# Use a shell loop with proper escaping for Makefile
+push:
+	@for img in $(IMAGES); do \
+		echo "Tagging and Pushing $(USER)/$$img:$(TAG)..."; \
+# 		docker push $(USER)/$$img:$(TAG) || (echo "Failed to push $$img" && exit 1); \
+	done
+
+K3S         = sudo k3s
+
+# The Import Rule
+import:
+	@for img in $(IMAGES); do \
+		echo "------------------------------------------------"; \
+		echo "Processing $$img..."; \
+		docker save $(USER)/$$img:$(TAG) -o /tmp/$$img.tar; \
+		sudo k3s ctr images import /tmp/$$img.tar; \
+		rm /tmp/$$img.tar; \
+		echo "$$img imported successfully."; \
+	done
+	@echo "------------------------------------------------"
+	@echo "All images imported. Restarting deployments..."
+	$(K3S) kubectl rollout restart deployment -n transcendence
 # Important: Clean everything including certs for a fresh start
 fclean:
 	docker compose down -v

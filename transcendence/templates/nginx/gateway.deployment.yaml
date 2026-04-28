@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: {{ .Values.nginx.replicaCount }}
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: "{{ .Values.nginx.image.repository }}:{{ .Values.nginx.image.tag }}"
+        imagePullPolicy: {{ .Values.nginx.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.nginx.service.port }}
+        volumeMounts:
+          # Mount the SSL Certificates
+          - name: certs
+            mountPath: "/etc/nginx/certs"
+            readOnly: true
+      volumes:
+      - name: certs
+        secret:
+          # Kustomize will automatically find the hashed name
+          secretName: {{ .Values.nginx.tlsSecretName }}

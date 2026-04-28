@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+  labels:
+    app: auth
+spec:
+  replicas: {{ .Values.backend.auth.replicaCount }}
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+      - name: auth
+        image: "{{ .Values.backend.auth.image.repository }}:{{ .Values.backend.auth.image.tag }}"
+        imagePullPolicy: {{ .Values.backend.auth.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.backend.auth.service.port }}
+        envFrom:
+        - configMapRef:
+            name: transcendence-config
+        - secretRef:
+            name: transcendence-secrets

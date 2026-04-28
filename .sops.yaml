@@ -1,0 +1,3 @@
+creation_rules:
+  - path_regex: .*\.yaml$
+    age: "age1gfvx5jm9a0lgjglnnngugyn23rng7j5srh6wvaf70ky80c5gdgssxejfpn" # Paste your age1... address here
