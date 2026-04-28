@@ -2,3 +2,10 @@ server.name: kibana
 server.host: "0.0.0.0"
 elasticsearch.hosts: [ "http://elasticsearch:9200" ]
 monitoring.ui.container.elasticsearch.enabled: true
+
+# ── Security: require login to access Kibana ─────────────────
+elasticsearch.username: "kibana_system"
+elasticsearch.password: "${ELASTIC_PASSWORD}"
+xpack.security.encryptionKey: "a_]kj2h3g4f5d6s7a8f9g0h1j2k3l4m5"
+xpack.encryptedSavedObjects.encryptionKey: "b_]kj2h3g4f5d6s7a8f9g0h1j2k3l4m5"
+xpack.reporting.encryptionKey: "c_]kj2h3g4f5d6s7a8f9g0h1j2k3l4m5"

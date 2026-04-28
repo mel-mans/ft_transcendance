@@ -1,0 +1,181 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 10% 6%;
+    --foreground: 0 0% 95%;
+
+    --card: 240 10% 10%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 240 10% 8%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 142 76% 55%;
+    --primary-foreground: 240 10% 6%;
+    --primary-glow: 142 76% 65%;
+
+    --secondary: 280 80% 65%;
+    --secondary-foreground: 240 10% 6%;
+    --secondary-glow: 280 80% 75%;
+
+    --muted: 240 10% 18%;
+    --muted-foreground: 240 10% 60%;
+
+    --accent: 280 80% 65%;
+    --accent-foreground: 240 10% 6%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 95%;
+
+    --border: 240 10% 20%;
+    --input: 240 10% 15%;
+    --ring: 142 76% 55%;
+
+    --radius: 12px;
+
+    --sidebar-background: 240 10% 8%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 142 76% 55%;
+    --sidebar-primary-foreground: 240 10% 6%;
+    --sidebar-accent: 280 80% 65%;
+    --sidebar-accent-foreground: 240 10% 6%;
+    --sidebar-border: 240 10% 20%;
+    --sidebar-ring: 142 76% 55%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(142 76% 55%), hsl(142 76% 45%));
+    --gradient-secondary: linear-gradient(135deg, hsl(280 80% 65%), hsl(280 80% 55%));
+    --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Outfit', system-ui, sans-serif;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.3);
+    color: hsl(var(--foreground));
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+  }
+
+  .glass {
+    @apply bg-card/60 backdrop-blur-xl border border-white/10;
+  }
+
+  .glass-strong {
+    @apply bg-card/80 backdrop-blur-2xl border border-white/15;
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3), 0 0 40px hsl(var(--primary) / 0.1);
+  }
+
+  .glow-secondary {
+    box-shadow: 0 0 20px hsl(var(--secondary) / 0.3), 0 0 40px hsl(var(--secondary) / 0.1);
+  }
+
+  .gradient-border {
+    position: relative;
+    background: linear-gradient(hsl(var(--card)), hsl(var(--card))) padding-box,
+                linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary))) border-box;
+    border: 1px solid transparent;
+  }
+
+  .marquee {
+    animation: marquee 15s linear infinite;
+  }
+
+  .top-marquee {
+    animation: marquee 28s linear infinite;
+  }
+
+  @keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }
+
+  .ticker-scroll {
+    animation: ticker 25s linear infinite;
+  }
+
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-33.333%); }
+  }
+
+  .animate-glow {
+    animation: glow-pulse 4s ease-in-out infinite;
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+  }
+
+  .glitch-text {
+    position: relative;
+    display: inline-block;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    text-shadow: none;
+    animation: glitch-shift 2.8s infinite steps(2, end);
+  }
+
+  .glitch-text::before,
+  .glitch-text::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .glitch-text::before {
+    color: inherit;
+    transform: translateX(1px);
+    clip-path: inset(0 0 58% 0);
+    opacity: 1;
+    animation: glitch-before 2s infinite steps(2, end);
+  }
+
+  .glitch-text::after {
+    color: inherit;
+    transform: translateX(-1px);
+    clip-path: inset(42% 0 0 0);
+    opacity: 1;
+    animation: glitch-after 1.7s infinite steps(2, end);
+  }
+
+  @keyframes glitch-shift {
+    0%, 92%, 100% { transform: translate(0, 0); }
+    93% { transform: translate(-1px, 1px); }
+    95% { transform: translate(1px, -1px); }
+    97% { transform: translate(-1px, 0); }
+  }
+
+  @keyframes glitch-before {
+    0%, 90%, 100% { transform: translateX(1px); }
+    92% { transform: translateX(3px); }
+    94% { transform: translateX(-2px); }
+  }
+
+  @keyframes glitch-after {
+    0%, 88%, 100% { transform: translateX(-1px); }
+    90% { transform: translateX(-3px); }
+    93% { transform: translateX(2px); }
+  }
+}

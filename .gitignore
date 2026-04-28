@@ -1,0 +1,37 @@
+# Elasticsearch data
+infrastructure/logging/elasticsearch/nodes/
+# Logstash data
+infrastructure/logging/logstash/plugins/
+infrastructure/logging/logstash/data/
+
+# Environment files (keep .env.example if you have one)
+.env
+.env.local
+
+# Node modules
+node_modules/
+infrastructure/grafana/*.db
+infrastructure/grafana/*.db-journal
+infrastructure/grafana/csv/
+infrastructure/grafana/pdf/
+infrastructure/grafana/png/
+infrastructure/grafana/plugins/
+infrastructure/grafana/unified-search/
+infrastructure/grafana/alerting/
+# Build outputs
+dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git backup directories
+.git.backup.*
+
+/uploads/avatars/
+/uploads/listings/

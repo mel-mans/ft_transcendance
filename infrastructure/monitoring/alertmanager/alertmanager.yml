@@ -1,0 +1,41 @@
+# ──────────────────────────────────────────────────────────────
+#  Alertmanager Configuration
+#  Routes alerts from Prometheus to configured receivers
+# ──────────────────────────────────────────────────────────────
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'default-webhook'
+
+  routes:
+    - match:
+        severity: critical
+      receiver: 'critical-webhook'
+      group_wait: 10s
+      repeat_interval: 1h
+
+receivers:
+  # Default receiver — logs alerts (replace with Slack/email/PagerDuty in production)
+  - name: 'default-webhook'
+    webhook_configs:
+      - url: 'http://alertmanager:9093/api/v1/alerts'
+        send_resolved: true
+
+  # Critical alerts — shorter repeat interval
+  - name: 'critical-webhook'
+    webhook_configs:
+      - url: 'http://alertmanager:9093/api/v1/alerts'
+        send_resolved: true
+
+# Inhibition rules — suppress lower-severity duplicates
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']

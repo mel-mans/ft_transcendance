@@ -1,0 +1,4 @@
+infrastructure/grafana
+infrastructure/logging/elasticsearch
+node_modules
+.git

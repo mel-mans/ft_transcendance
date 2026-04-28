@@ -12,3 +12,5 @@ output.logstash:
 
 setup.kibana:
   host: "http://kibana:5601"
+  username: "elastic"
+  password: "${ELASTIC_PASSWORD}"

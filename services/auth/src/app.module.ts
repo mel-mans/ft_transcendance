@@ -1,22 +1,26 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { PrismaService } from './prisma.service';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { Intra42Strategy } from './strategies/intra42.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
+
+
 
 @Module({
     imports: [
-        TypeOrmModule.forRoot({
-            type: 'postgres',
-            host: 'postgres_db',
-            port: 5432,
-            username: process.env.DB_USER,
-            password: process.env.DB_PASS,
-            database: 'auth_db',
-            entities: [],
-            synchronize: true,
+        PassportModule,
+        JwtModule.register({
+            secret: process.env.JWT_SECRET || 'fallback-secret-key',
+            signOptions: { 
+                expiresIn: '7d'
+            },
         }),
     ],
     controllers: [AppController],
-    providers: [AppService],
+    providers: [AppService, PrismaService, JwtStrategy, Intra42Strategy, GoogleStrategy],
 })
 export class AppModule { }

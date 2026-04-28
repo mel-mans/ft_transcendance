@@ -1,0 +1,40 @@
+"""
+=============================================================
+REAL ML-BASED ROOMMATE RECOMMENDATION SYSTEM
+=============================================================
+
+What makes this ACTUALLY machine learning:
+
+1. COLLABORATIVE FILTERING (Matrix Factorization via SVD)
+   - Learns latent preference factors from user interaction history
+   - "Users who liked X also liked Y" — not computable from profiles alone
+   - Model parameters are learned from data, not hand-crafted formulas
+
+2. ONLINE LEARNING (SGDClassifier)
+   - Updates the compatibility model incrementally as new feedback arrives
+   - The model literally changes its weights after each interaction
+   - partial_fit() = true online/incremental learning
+
+3. FEEDBACK LOOP
+   - Users rate matches (accept / reject / contact)
+   - These signals are fed back into training
+   - Future recommendations improve based on past outcomes
+   - Cold-start handled via content fallback, then replaced by learned model
+
+4. FEATURE LEARNING
+   - Raw profile features are transformed into learned embeddings
+   - The SVD latent space is data-driven, not hand-designed
+
+5. EXPLORATION vs EXPLOITATION (ε-greedy bandit)
+   - Balances showing the "best known" match vs. exploring uncertain ones
+   - Purely deterministic math cannot do this
+
+Compare to the OLD system:
+   - MinMaxScaler    → just rescales numbers
+   - OneHotEncoder   → just converts categories to bits
+   - cosine_similarity → computes angle between vectors
+   None of those involve learning. The result is 100% determined by the
+   input — the same profile pair always produces the same score, forever,
+   regardless of what happened between 1000 other users.
+=============================================================
+"""

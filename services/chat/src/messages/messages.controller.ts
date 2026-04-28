@@ -1,0 +1,49 @@
+import { Controller, Get, Post, Param, Body, Request, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { MessagesService } from './messages.service';
+import { MessagesGateway } from './messages.gateway';
+import { AuthGuard } from '@nestjs/passport';
+
+@Controller('api/chat/messages')
+@UseGuards(AuthGuard('jwt'))
+export class MessagesController {
+  constructor(
+    private messagesService: MessagesService,
+    private messagesGateway: MessagesGateway,
+  ) {}
+
+  @Get('inbox')
+  async getInbox(@Request() req) {
+    const myId = req.user.userId;
+    return this.messagesService.getInbox(myId);
+  }
+
+  @Get(':userId')
+  async getMessages(@Param('userId', ParseIntPipe) userId: number, @Request() req) {
+    const myId = req.user.userId;
+    return this.messagesService.getMessages(myId, userId);
+  }
+
+  @Post(':userId')
+  async createMessage(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body('content') content: string,
+    @Request() req,
+  ) {
+    const myId = req.user.userId;
+    const message = await this.messagesService.createMessage(myId, userId, content);
+
+    // Emit via Socket.IO so all connected clients see the new message in real time
+    this.messagesGateway.emitNewMessage(myId, userId, message);
+
+    return message;
+  }
+
+  @Post(':userId/read')
+  async markThreadAsRead(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Request() req,
+  ) {
+    const myId = req.user.userId;
+    return this.messagesService.markThreadAsRead(myId, userId);
+  }
+}
