@@ -26,23 +26,12 @@ configMap:
   INTRA42_CALLBACK_URL: "https://localhost/api/auth/42/callback"
   GOOGLE_CALLBACK_URL: "https://localhost/api/auth/google/callback"
 
-secrets:
-  GEMINI_API_KEY: "AIzaSyCpnfO4MZ-kq9r3eNWrgjqXmCznO2Xrj1s"
-  DB_PASS: "12345678"
-  JWT_SECRET: "zaba_w_chta_sabba_layn3ltbonmha_hayati"
-  ELASTIC_PASSWORD: "ilyass"
-  GF_ADMIN_PASSWORD: "admin"
-  INTRA42_CLIENT_ID: "u-s4t2ud-daa3ad47f7cbba778275b16a21c5d1502218a1707ec8ad691fa63cef0caa007e"
-  INTRA42_CLIENT_SECRET: "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"
-  GOOGLE_CLIENT_ID: "142886815119-60nlktnb0utrb8a3vblggoeu7jhs422q.apps.googleusercontent.com"
-  GOOGLE_CLIENT_SECRET: "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"
-
 nginx:
   enabled: true
   replicaCount: 1
   image:
-    repository: ibougajd/nginx
-    tag: v2
+    repository: localhost:5555/nginx
+    tag: latest
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -53,7 +42,7 @@ frontend:
   enabled: true
   replicaCount: 1
   image:
-    repository: ibougajd/front
+    repository: localhost:5555/front
     tag: latest
     pullPolicy: IfNotPresent
   service:
@@ -65,7 +54,7 @@ backend:
     enabled: true
     replicaCount: 1
     image:
-      repository: ibougajd/postgres
+      repository: localhost:5555/postgres
       tag: latest
       pullPolicy: IfNotPresent
     service:
@@ -75,7 +64,7 @@ backend:
     enabled: true
     replicaCount: 1
     image:
-      repository: ibougajd/auth
+      repository: localhost:5555/auth
       tag: latest
       pullPolicy: IfNotPresent
     service:
@@ -85,7 +74,7 @@ backend:
     enabled: true
     replicaCount: 1
     image:
-      repository: ibougajd/chat
+      repository: localhost:5555/chat
       tag: latest
       pullPolicy: IfNotPresent
     service:
@@ -95,7 +84,7 @@ backend:
     enabled: true
     replicaCount: 1
     image:
-      repository: ibougajd/user
+      repository: localhost:5555/user
       tag: latest
       pullPolicy: IfNotPresent
     service:
@@ -105,7 +94,7 @@ backend:
     enabled: true
     replicaCount: 1
     image:
-      repository: ibougajd/listings
+      repository: localhost:5555/listings
       tag: latest
       pullPolicy: IfNotPresent
     service:
@@ -115,7 +104,7 @@ backend:
     enabled: true
     replicaCount: 1
     image:
-      repository: ibougajd/ai
+      repository: localhost:5555/ai
       tag: latest
       pullPolicy: IfNotPresent
     service:
