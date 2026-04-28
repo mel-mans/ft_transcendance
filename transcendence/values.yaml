@@ -1,0 +1,123 @@
+# Default values for transcendence.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+global:
+  namespace: transcendence
+
+configMap:
+  HOST: "0.0.0.0"
+  GATEWAY_PORT: "443"
+  AUTH_SERVICE_PORT: "3004"
+  CHAT_SERVICE_PORT: "3001"
+  USER_SERVICE_PORT: "3002"
+  FRONT_SERVICE_PORT: "3003"
+  LISTINGS_SERVICE_PORT: "3005"
+  AI_SERVICE_PORT: "3006"
+  APP_URL: "https://localhost/"
+  FRONTEND_URL: "http://localhost:3003/"
+  DB_USER: "postgres"
+  DB_NAME: "postgres"
+  JWT_EXPIRES_IN: "7d"
+  DATABASE_URL: "postgresql://postgres:12345678@database:5432/postgres?schema=public"
+  ELASTIC_VERSION: "7.17.21"
+  ELASTIC_SECURITY: "false"
+  POSTGRES_PORT: "5432"
+  INTRA42_CALLBACK_URL: "https://localhost/api/auth/42/callback"
+  GOOGLE_CALLBACK_URL: "https://localhost/api/auth/google/callback"
+
+secrets:
+  GEMINI_API_KEY: "AIzaSyCpnfO4MZ-kq9r3eNWrgjqXmCznO2Xrj1s"
+  DB_PASS: "12345678"
+  JWT_SECRET: "zaba_w_chta_sabba_layn3ltbonmha_hayati"
+  ELASTIC_PASSWORD: "ilyass"
+  GF_ADMIN_PASSWORD: "admin"
+  INTRA42_CLIENT_ID: "u-s4t2ud-daa3ad47f7cbba778275b16a21c5d1502218a1707ec8ad691fa63cef0caa007e"
+  INTRA42_CLIENT_SECRET: "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"
+  GOOGLE_CLIENT_ID: "142886815119-60nlktnb0utrb8a3vblggoeu7jhs422q.apps.googleusercontent.com"
+  GOOGLE_CLIENT_SECRET: "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"
+
+nginx:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ibougajd/nginx
+    tag: v2
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 443
+  tlsSecretName: nginx-certs
+
+frontend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ibougajd/front
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3003
+
+backend:
+  database:
+    enabled: true
+    replicaCount: 1
+    image:
+      repository: ibougajd/postgres
+      tag: latest
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 5432
+  auth:
+    enabled: true
+    replicaCount: 1
+    image:
+      repository: ibougajd/auth
+      tag: latest
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 3004
+  chat:
+    enabled: true
+    replicaCount: 1
+    image:
+      repository: ibougajd/chat
+      tag: latest
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 3001
+  user:
+    enabled: true
+    replicaCount: 1
+    image:
+      repository: ibougajd/user
+      tag: latest
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 3002
+  listings:
+    enabled: true
+    replicaCount: 1
+    image:
+      repository: ibougajd/listings
+      tag: latest
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 3005
+  ai:
+    enabled: true
+    replicaCount: 1
+    image:
+      repository: ibougajd/ai
+      tag: latest
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 3006

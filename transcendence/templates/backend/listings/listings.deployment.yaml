@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: listings-deployment
+  labels:
+    app: listings
+spec:
+  replicas: {{ .Values.backend.listings.replicaCount }}
+  selector:
+    matchLabels:
+      app: listings
+  template:
+    metadata:
+      labels:
+        app: listings
+    spec:
+      containers:
+      - name: listings
+        image: "{{ .Values.backend.listings.image.repository }}:{{ .Values.backend.listings.image.tag }}"
+        imagePullPolicy: {{ .Values.backend.listings.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.backend.listings.service.port }}
+        envFrom:
+        - configMapRef:
+            name: transcendence-config
+        - secretRef:
+            name: transcendence-secrets

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-deployment
+  labels:
+    app: user
+spec:
+  replicas: {{ .Values.backend.user.replicaCount }}
+  selector:
+    matchLabels:
+      app: user
+  template:
+    metadata:
+      labels:
+        app: user
+    spec:
+      containers:
+      - name: user
+        image: "{{ .Values.backend.user.image.repository }}:{{ .Values.backend.user.image.tag }}"
+        imagePullPolicy: {{ .Values.backend.user.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.backend.user.service.port }}
+        envFrom:
+        - configMapRef:
+            name: transcendence-config
+        - secretRef:
+            name: transcendence-secrets

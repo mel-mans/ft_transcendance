@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-deployment
+  labels:
+    app: ai
+spec:
+  replicas: {{ .Values.backend.ai.replicaCount }}
+  selector:
+    matchLabels:
+      app: ai
+  template:
+    metadata:
+      labels:
+        app: ai
+    spec:
+      containers:
+      - name: ai
+        image: "{{ .Values.backend.ai.image.repository }}:{{ .Values.backend.ai.image.tag }}"
+        imagePullPolicy: {{ .Values.backend.ai.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.backend.ai.service.port }}
+        envFrom:
+        - configMapRef:
+            name: transcendence-config
+        - secretRef:
+            name: transcendence-secrets

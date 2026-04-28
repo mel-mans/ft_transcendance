@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-deployment
+  labels:
+    app: chat
+spec:
+  replicas: {{ .Values.backend.chat.replicaCount }}
+  selector:
+    matchLabels:
+      app: chat
+  template:
+    metadata:
+      labels:
+        app: chat
+    spec:
+      containers:
+      - name: chat
+        image: "{{ .Values.backend.chat.image.repository }}:{{ .Values.backend.chat.image.tag }}"
+        imagePullPolicy: {{ .Values.backend.chat.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.backend.chat.service.port }}
+        envFrom:
+        - configMapRef:
+            name: transcendence-config
+        - secretRef:
+            name: transcendence-secrets
