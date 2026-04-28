@@ -186,6 +186,7 @@ services:
         condition: service_healthy
   #------postgres service------#
   postgres:
+    build: infrastructure/postgres
     image: localhost:5555/postgres:latest
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     container_name: postgres_db
