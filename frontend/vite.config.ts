@@ -15,4 +15,15 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // Suppress the THREE.Clock deprecation warning
+        if (warning.message && warning.message.includes("THREE.Clock")) {
+          return;
+        }
+        warn(warning);
+      },
+    },
+  },
 }));
