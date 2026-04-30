@@ -143,8 +143,25 @@ const HeroImageCube = ({ faces }: HeroImageCubeProps) => {
   }, [faces]);
 
   return (
-    <div className="w-[330px] h-[330px] sm:w-[370px] sm:h-[370px] md:w-[410px] md:h-[410px] mx-auto cursor-grab active:cursor-grabbing">
-      <Canvas camera={{ position: [0, 0, 5.2], fov: 50 }}>
+    <div 
+      className="mx-auto cursor-grab active:cursor-grabbing"
+      style={{
+        width: "330px",
+        height: "330px",
+      }}
+    >
+      <Canvas 
+        camera={{ position: [0, 0, 5.2], fov: 50 }}
+        gl={{ 
+          antialias: true,
+          powerPreference: "high-performance",
+          preserveDrawingBuffer: false,
+          failIfMajorPerformanceCaveat: false,
+        }}
+        onCreated={(state) => {
+          state.gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        }}
+      >
         <ambientLight intensity={1} />
         <Cube faces={cubeFaces} />
       </Canvas>
