@@ -8,7 +8,7 @@ RUN apt-get update -y && apt-get install -y openssl
 COPY services/auth/package*.json ./
 COPY ./prisma ./prisma/
 RUN npm install
-COPY services/auth/. ./
+COPY ./ ./
 RUN npx prisma generate
 RUN npm run build
 
