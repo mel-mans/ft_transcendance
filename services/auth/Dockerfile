@@ -1,38 +1,44 @@
-# --- STAGE 1: The Build Environment (The Kitchen) ---
-FROM node:20-bullseye-slim AS builder
+# --- STAGE 1: Build ---
+FROM node:20-bullseye AS builder
 WORKDIR /app
 
-# Install OpenSSL for Prisma
-RUN apt-get update -y && apt-get install -y openssl
+# Install OpenSSL (needed for Prisma)
+RUN apt-get update && apt-get install -y openssl \
+ && rm -rf /var/lib/apt/lists/*
 
-COPY services/auth/package*.json ./
-COPY ./prisma ./prisma/
+COPY package*.json ./
 RUN npm install
-COPY ./ ./
+
+COPY . .
+
+# Generate Prisma client + build app
 RUN npx prisma generate
 RUN npm run build
 
-# --- STAGE 2: The Production Image (The Dining Room) ---
+
+# --- STAGE 2: Production ---
 FROM node:20-bullseye-slim
 WORKDIR /app
 
-# Security: Run as a non-privileged user
-RUN apt-get update && apt-get install -y curl openssl && \
-    useradd -m devops_user && \
-    rm -rf /var/lib/apt/lists/*
+# Install ONLY what Prisma needs
+RUN apt-get update && apt-get install -y openssl \
+ && rm -rf /var/lib/apt/lists/*
 
-# We ONLY copy the specific artifacts we need from the builder
-COPY --chown=devops_user:devops_user --from=builder /app/dist ./dist
-COPY --chown=devops_user:devops_user --from=builder /app/node_modules ./node_modules
-COPY --chown=devops_user:devops_user --from=builder /app/package.json ./package.json
-COPY --chown=devops_user:devops_user --from=builder /app/prisma ./prisma
+# Create non-root user
+RUN useradd -m appuser
 
-USER devops_user
+# Copy built app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/prisma ./prisma
 
-# The final image HAS NO:
-# - npm cache
-# - source code (.ts files)
-# - compilers or build tools
+# Set ownership
+RUN chown -R appuser:appuser /app
 
-EXPOSE ${AUTH_SERVICE_PORT}
-CMD ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && node dist/main.js"]
+USER appuser
+
+EXPOSE 3000
+
+# 🚀 Run migrations THEN start app
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
