@@ -32,7 +32,7 @@ const Login = () => {
     (async () => {
       try {
         await login(email, password);
-        navigate('/profile');
+        window.location.href = 'https://empowering-blessing-production-eacf.up.railway.app/profile';
       } catch (err: any) {
         let msg = err?.message || 'Hmm… that didn’t work.';
         if (msg.includes('Network error')) {

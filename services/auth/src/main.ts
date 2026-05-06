@@ -6,7 +6,7 @@ import * as cookieParser from 'cookie-parser';
 import * as promClient from 'prom-client';
 
 async function bootstrap() {
-    const port = process.env.AUTH_SERVICE_PORT || 3004;
+    const port = process.env.PORT || 3004;
     const app = await NestFactory.create(AppModule);
 
     // ========== PROMETHEUS METRICS ==========
@@ -43,6 +43,7 @@ async function bootstrap() {
 
     // Enable CORS - Allow NGINX origin
     const allowedOrigins = [
+        'https://empowering-blessing-production-eacf.up.railway.app',
         process.env.APP_URL,
         process.env.FRONTEND_URL,
     ].filter(Boolean);

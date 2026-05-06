@@ -34,7 +34,7 @@ const AuthCallback = () => {
     (async () => {
       try {
         await completeOAuthLogin();
-        navigate("/profile", { replace: true });
+        window.location.href = 'https://empowering-blessing-production-eacf.up.railway.app/profile';
       } catch (err: any) {
         setError(err?.message || "OAuth login failed.");
       }

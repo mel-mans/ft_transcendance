@@ -13,16 +13,8 @@ export class AppController {
     constructor(private readonly appService: AppService) { }
 
     private resolveFrontendUrl(req: Request): string {
-        const configured = process.env.APP_URL || process.env.FRONTEND_URL;
-        if (configured) {
-            return configured.replace(/\/+$/, '');
-        }
-
-        const forwardedProto = (req.headers['x-forwarded-proto'] as string | undefined)?.split(',')[0]?.trim();
-        const forwardedHost = (req.headers['x-forwarded-host'] as string | undefined)?.split(',')[0]?.trim();
-        const proto = forwardedProto || req.protocol || 'http';
-        const host = forwardedHost || req.get('host');
-        return `${proto}://${host}`;
+        // Always redirect to the specified production domain
+        return 'https://empowering-blessing-production-eacf.up.railway.app';
     }
 
     @Get()
