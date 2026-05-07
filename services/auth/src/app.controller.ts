@@ -13,8 +13,15 @@ export class AppController {
     constructor(private readonly appService: AppService) { }
 
     private resolveFrontendUrl(req: Request): string {
-        // Always redirect to the specified production domain
-        return 'https://empowering-blessing-production-eacf.up.railway.app';
+        // Use environment variable for frontend URL, fallback to origin if not set
+        const frontendUrl = process.env.FRONTEND_URL;
+        
+        if (frontendUrl) {
+            return frontendUrl.replace(/\/+$/, ''); // Remove trailing slashes
+        }
+
+        // Fallback: use request origin
+        return req.get('origin') || 'http://localhost:3003';
     }
 
     @Get()

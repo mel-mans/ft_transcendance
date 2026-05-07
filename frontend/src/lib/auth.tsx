@@ -42,20 +42,24 @@ export function AuthProvider({ children }: any) {
   };
 
   const getAuthBaseUrl = () => {
-    const configuredBase = (api.defaults.baseURL as string | undefined) || "";
+    // Try to get base URL from VITE_API_BASE_URL environment variable
+    const configuredBase = String(import.meta.env.VITE_API_BASE_URL || "").trim();
 
-    if (!configuredBase) {
-      return window.location.origin;
+    if (configuredBase) {
+      // Remove trailing slashes and /api suffix (endpoints already include /api)
+      return configuredBase.replace(/\/+$/, "").replace(/\/api$/, "");
     }
 
-    if (/^https?:\/\//i.test(configuredBase)) {
-      return configuredBase;
+    // Fallback: When frontend is served directly (3003/8080), use localhost
+    if (
+      typeof window !== "undefined" &&
+      ["3003", "8080"].includes(window.location.port)
+    ) {
+      return "https://localhost";
     }
 
-    const normalizedBase = configuredBase.startsWith("/")
-      ? configuredBase
-      : `/${configuredBase}`;
-    return `${window.location.origin}${normalizedBase}`;
+    // Final fallback: use current origin
+    return window.location.origin;
   };
 
   const startOAuth = (provider: "google" | "42") => {

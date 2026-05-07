@@ -43,9 +43,8 @@ async function bootstrap() {
 
     // Enable CORS - Allow NGINX origin
     const allowedOrigins = [
-        'https://empowering-blessing-production-eacf.up.railway.app',
-        process.env.APP_URL,
         process.env.FRONTEND_URL,
+        process.env.APP_URL,
     ].filter(Boolean);
 
     app.enableCors({

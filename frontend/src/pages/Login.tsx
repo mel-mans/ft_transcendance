@@ -32,7 +32,9 @@ const Login = () => {
     (async () => {
       try {
         await login(email, password);
-        window.location.href = 'https://empowering-blessing-production-eacf.up.railway.app/profile';
+        // Redirect to profile page - use window.location.origin for dynamic URL
+        const frontendUrl = window.location.origin;
+        window.location.href = `${frontendUrl}/profile`;
       } catch (err: any) {
         let msg = err?.message || 'Hmm… that didn’t work.';
         if (msg.includes('Network error')) {

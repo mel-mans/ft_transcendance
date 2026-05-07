@@ -34,7 +34,9 @@ const AuthCallback = () => {
     (async () => {
       try {
         await completeOAuthLogin();
-        window.location.href = 'https://empowering-blessing-production-eacf.up.railway.app/profile';
+        // Redirect to profile page - use window.location.origin for dynamic URL
+        const frontendUrl = window.location.origin;
+        window.location.href = `${frontendUrl}/profile`;
       } catch (err: any) {
         setError(err?.message || "OAuth login failed.");
       }
