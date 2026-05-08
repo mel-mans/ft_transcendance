@@ -67,13 +67,18 @@ const Cube = ({ faces }: { faces: CubeFaceCard[] }) => {
 
   const textures = useMemo(() => {
     try {
+      // Ensure faces is an array before mapping
+      if (!Array.isArray(faces) || faces.length === 0) {
+        console.warn("Faces is not a valid array:", faces);
+        return [];
+      }
       return faces.map(createFaceTexture);
     } catch (err) {
       console.error("Failed to create textures:", err);
       setRenderError("Failed to create textures");
       return [];
     }
-  }, [faces]);
+  }, [faces, setRenderError]);
 
   const isDraggingRef = useRef(false);
   const lastPointerXRef = useRef(0);
@@ -169,7 +174,10 @@ const HeroImageCube = ({ faces }: HeroImageCubeProps) => {
   const [error, setError] = useState<string | null>(null);
 
   const cubeFaces = useMemo(() => {
-    if (faces.length === 0) {
+    // Ensure faces is a valid array
+    const faceArray = Array.isArray(faces) ? faces : [];
+
+    if (faceArray.length === 0) {
       return Array.from({ length: 6 }, () => ({
         kind: "listing" as const,
         title: "Listing",
@@ -178,9 +186,9 @@ const HeroImageCube = ({ faces }: HeroImageCubeProps) => {
       }));
     }
 
-    const normalized = [...faces];
+    const normalized = [...faceArray];
     while (normalized.length < 6) {
-      normalized.push(faces[normalized.length % faces.length]);
+      normalized.push(faceArray[normalized.length % faceArray.length]);
     }
 
     return normalized.slice(0, 6);
@@ -215,7 +223,7 @@ const HeroImageCube = ({ faces }: HeroImageCubeProps) => {
         }}
       >
         <ambientLight intensity={1} />
-        <Cube faces={cubeFaces} />
+        <Cube faces={Array.isArray(cubeFaces) ? cubeFaces : []} />
       </Canvas>
     </div>
   );
