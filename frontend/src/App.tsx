@@ -21,8 +21,14 @@ import { useAuth } from "./lib/auth";
 const queryClient = new QueryClient();
 
 const HomeRoute = () => {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
 
+  // Don't redirect while checking authentication
+  if (isLoading) {
+    return <div className="min-h-screen bg-background" />;
+  }
+
+  // Only redirect to profile if user is actually logged in
   if (user) {
     return <Navigate to="/profile" replace />;
   }

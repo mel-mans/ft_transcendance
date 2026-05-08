@@ -4,6 +4,7 @@ import API from "@/lib/apiEndpoints";
 
 interface AuthContextType {
   user: any;
+  isLoading: boolean;
   updateUser: (partialUser: Record<string, any>) => void;
   login: (identifier: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
@@ -16,12 +17,14 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: any) {
   const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     api
       .get(API.users.me)
       .then(setUser)
-      .catch(() => setUser(null));
+      .catch(() => setUser(null))
+      .finally(() => setIsLoading(false));
   }, []);
 
   const login = async (identifier: string, password: string) => {
@@ -89,7 +92,7 @@ export function AuthProvider({ children }: any) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, updateUser, login, signup, startOAuth, completeOAuthLogin, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, updateUser, login, signup, startOAuth, completeOAuthLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );
