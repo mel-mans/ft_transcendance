@@ -64,8 +64,11 @@ export function AuthProvider({ children }: any) {
 
   const startOAuth = (provider: "google" | "42") => {
     const endpoint = provider === "google" ? API.auth.google : API.auth.intra42;
-    const redirectUrl = new URL(endpoint, getAuthBaseUrl()).toString();
-    window.location.assign(redirectUrl);
+    const baseUrl = getAuthBaseUrl();
+    const callbackUrl = `${window.location.origin}/auth/callback`;
+    const redirectUrl = new URL(endpoint, baseUrl);
+    redirectUrl.searchParams.append("callback", callbackUrl);
+    window.location.assign(redirectUrl.toString());
   };
 
   const completeOAuthLogin = async () => {

@@ -13,6 +13,18 @@ export class AppController {
     constructor(private readonly appService: AppService) { }
 
     private resolveFrontendUrl(req: Request): string {
+        // Check if callback URL is passed as query parameter
+        const callbackUrl = req.query.callback as string;
+        if (callbackUrl) {
+            // Extract the base URL from the callback (remove path)
+            try {
+                const url = new URL(callbackUrl);
+                return `${url.protocol}//${url.host}`;
+            } catch {
+                // Invalid URL, fall through to other options
+            }
+        }
+
         // Use environment variable for frontend URL, fallback to origin if not set
         const frontendUrl = process.env.FRONTEND_URL;
         
@@ -174,7 +186,7 @@ export class AppController {
         description: 'Handles 42 OAuth callback. Users should not call this directly.'
     })
     @ApiResponse({ status: 302, description: 'Redirects to frontend with JWT token' })
-    async callback42(@Req() req: any, @Res() res: Response, ) {
+    async callback42(@Req() req: any, @Res() res: Response) {
         try {
             const result = await this.appService.oauthLogin(req.user);
             const frontendUrl = this.resolveFrontendUrl(req);
@@ -187,7 +199,7 @@ export class AppController {
                 maxAge: 7 * 24 * 60 * 60 * 1000,
             });
 
-            // Redirect to frontend with success + token (fallback when cookies are blocked cross-origin)
+            // Redirect to frontend callback page
             res.redirect(`${frontendUrl}/auth/callback?success=true`);
         } catch (error) {
             console.error('42 OAuth error:', error);
@@ -228,7 +240,7 @@ export class AppController {
                 maxAge: 7 * 24 * 60 * 60 * 1000,
             });
 
-            // Redirect to frontend with success + token (fallback when cookies are blocked cross-origin)
+            // Redirect to frontend callback page
             res.redirect(`${frontendUrl}/auth/callback?success=true`);
         } catch (error) {
             console.error('Google OAuth error:', error);
