@@ -23,4 +23,4 @@ RUN apt-get update \
 
 EXPOSE 3003
 
-CMD ["serve", "-s", "/app/dist", "-l", "3003"]
+CMD ["serve", "-s", "/app/dist", "-l", "tcp://0.0.0.0:3003"]

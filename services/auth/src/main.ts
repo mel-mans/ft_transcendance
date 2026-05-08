@@ -6,7 +6,7 @@ import * as cookieParser from 'cookie-parser';
 import * as promClient from 'prom-client';
 
 async function bootstrap() {
-    const port = process.env.PORT || 3004;
+    const port = process.env.PORT || 3000;
     const app = await NestFactory.create(AppModule);
 
     // ========== PROMETHEUS METRICS ==========
@@ -77,8 +77,8 @@ async function bootstrap() {
     SwaggerModule.setup('api/auth/docs', app, document);
     // ====================================
 
-    await app.listen(port);
-    console.log(`Auth Service running on port ${port}`);
+    await app.listen(port, '0.0.0.0');
+    console.log(`Auth Service running on 0.0.0.0:${port}`);
     console.log(`📚 Swagger docs: http://localhost:${port}/api/auth/docs`);
 }
 bootstrap();

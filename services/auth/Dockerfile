@@ -41,4 +41,4 @@ USER appuser
 EXPOSE 3000
 
 # 🚀 Run migrations THEN start app
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && PORT=3000 node dist/main.js"]
