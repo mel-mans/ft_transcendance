@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useGlitch } from "react-powerglitch";
+import { useState } from "react";
 import HeroImageCube from "@/components/HeroImageCube";
 import type { CubeFaceCard } from "@/components/HeroImageCube";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +17,7 @@ const cubeFaces: CubeFaceCard[] = [
 
 const Hero = () => {
   const navigate = useNavigate();
+  const [cubeError, setCubeError] = useState(false);
   const getStartedGlitch = useGlitch({
     playMode: "hover",
   });
@@ -74,7 +76,15 @@ const Hero = () => {
             <div className="absolute -inset-4 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 rounded-3xl blur-2xl opacity-30" />
             
             <div className="relative">
-              <HeroImageCube faces={cubeFaces} />
+              {cubeError ? (
+                <div className="w-[330px] h-[330px] sm:w-[370px] sm:h-[370px] md:w-[410px] md:h-[410px] mx-auto flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg border border-primary/30">
+                  <p className="text-sm text-muted-foreground">3D view unavailable</p>
+                </div>
+              ) : (
+                <div onError={() => setCubeError(true)}>
+                  <HeroImageCube faces={cubeFaces} />
+                </div>
+              )}
 
               {/* Decorative elements */}
               <div className="absolute -top-6 -right-6 w-12 h-12 rounded-full bg-primary/15 blur-xl" />
