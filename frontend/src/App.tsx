@@ -25,14 +25,17 @@ const HomeRoute = () => {
 
   // Don't redirect while checking authentication
   if (isLoading) {
+    console.log('🔄 Auth is loading, showing blank page...');
     return <div className="min-h-screen bg-background" />;
   }
 
   // Only redirect to profile if user is actually logged in
   if (user) {
+    console.log('✅ User logged in, redirecting to profile:', user);
     return <Navigate to="/profile" replace />;
   }
 
+  console.log('✅ No user logged in, showing landing page');
   return <Index />;
 };
 

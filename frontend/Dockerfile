@@ -21,6 +21,7 @@ RUN apt-get update \
 	&& rm -rf /var/lib/apt/lists/* \
 	&& npm install -g serve
 
-EXPOSE 3003
+EXPOSE 3000
 
-CMD ["serve", "-s", "/app/dist", "-l", "tcp://0.0.0.0:3003"]
+# Railway sets PORT env var automatically
+CMD ["serve", "-s", "/app/dist", "-l", "tcp://0.0.0.0:${PORT:-3000}"]

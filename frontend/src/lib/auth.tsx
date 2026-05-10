@@ -22,9 +22,18 @@ export function AuthProvider({ children }: any) {
   useEffect(() => {
     api
       .get(API.users.me)
-      .then(setUser)
-      .catch(() => setUser(null))
-      .finally(() => setIsLoading(false));
+      .then((userData) => {
+        console.log('✅ Auth check successful:', userData);
+        setUser(userData);
+      })
+      .catch((error) => {
+        console.log('ℹ️ Auth check failed (expected if not logged in):', error?.message);
+        setUser(null);
+      })
+      .finally(() => {
+        console.log('✅ Auth check complete, isLoading set to false');
+        setIsLoading(false);
+      });
   }, []);
 
   const login = async (identifier: string, password: string) => {
@@ -47,21 +56,28 @@ export function AuthProvider({ children }: any) {
   const getAuthBaseUrl = () => {
     // Try to get base URL from VITE_API_BASE_URL environment variable
     const configuredBase = String(import.meta.env.VITE_API_BASE_URL || "").trim();
+    const rawEnvValue = import.meta.env.VITE_API_BASE_URL;
 
     if (configuredBase) {
       // Remove trailing slashes and /api suffix (endpoints already include /api)
-      return configuredBase.replace(/\/+$/, "").replace(/\/api$/, "");
+      const cleanedUrl = configuredBase.replace(/\/+$/, "").replace(/\/api$/, "");
+      console.log('🔗 Using VITE_API_BASE_URL:', cleanedUrl);
+      return cleanedUrl;
     }
+
+    console.warn('⚠️ VITE_API_BASE_URL not configured. Raw env value:', rawEnvValue);
 
     // Fallback: When frontend is served directly (3003/8080), use localhost
     if (
       typeof window !== "undefined" &&
       ["3003", "8080"].includes(window.location.port)
     ) {
+      console.log('🔗 Using localhost fallback (dev mode on port 3003/8080)');
       return "https://localhost";
     }
 
-    // Final fallback: use current origin
+    // Final fallback: use current origin (NOT RECOMMENDED for production multi-service setup)
+    console.warn('⚠️ Falling back to current origin. For Railway, set VITE_API_BASE_URL environment variable.');
     return window.location.origin;
   };
 
@@ -71,7 +87,9 @@ export function AuthProvider({ children }: any) {
     const callbackUrl = `${window.location.origin}/auth/callback`;
     const redirectUrl = new URL(endpoint, baseUrl);
     redirectUrl.searchParams.append("callback", callbackUrl);
-    window.location.assign(redirectUrl.toString());
+    const fullUrl = redirectUrl.toString();
+    console.log(`🔐 OAuth redirect [${provider}]:`, fullUrl);
+    window.location.assign(fullUrl);
   };
 
   const completeOAuthLogin = async () => {

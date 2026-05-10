@@ -48,12 +48,16 @@ const axiosInstance = axios.create({
         typeof window !== "undefined" &&
         ["3003", "8080"].includes(window.location.port)
       ) {
+        console.log('🔗 API: Using localhost (dev mode)');
         return "https://localhost";
       }
+      console.warn('⚠️ API: No VITE_API_BASE_URL and not in dev mode, using relative URLs');
       return undefined;
     }
 
-    return rawBase.replace(/\/+$/, "").replace(/\/api$/, "");
+    const cleanedUrl = rawBase.replace(/\/+$/, "").replace(/\/api$/, "");
+    console.log('🔗 API: Using VITE_API_BASE_URL:', cleanedUrl);
+    return cleanedUrl;
   })(),
   withCredentials: true,
 }) as ApiClient;
