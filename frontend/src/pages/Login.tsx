@@ -8,6 +8,9 @@ import { useAuth } from '@/lib/auth';
 import PageLayout from "@/components/PageLayout";
 
 const Login = () => {
+  const navigate = useNavigate();
+  const { login, startOAuth } = useAuth();
+
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,14 +19,14 @@ const Login = () => {
   const [error, setError] = useState<string | null>(null);
 
   const handle42Login = () => {
+    console.log('📱 42 login clicked');
     startOAuth("42");
   };
 
   const handleGoogleLogin = () => {
+    console.log('🔍 Google login clicked');
     startOAuth("google");
   };
-
-  const { login, startOAuth } = useAuth();
 
   const handleEmailLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,8 +49,6 @@ const Login = () => {
       }
     })();
   };
-
-  const navigate = useNavigate();
 
   return (
     <PageLayout className="flex items-center justify-center p-4">

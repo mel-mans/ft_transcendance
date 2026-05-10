@@ -90,13 +90,18 @@ export function AuthProvider({ children }: any) {
   };
 
   const startOAuth = (provider: "google" | "42") => {
+    console.log(`🔐 startOAuth called with provider: ${provider}`);
     const endpoint = provider === "google" ? API.auth.google : API.auth.intra42;
+    console.log(`🔐 Endpoint path: ${endpoint}`);
     const baseUrl = getAuthBaseUrl();
+    console.log(`🔐 Auth base URL: ${baseUrl}`);
     const callbackUrl = `${window.location.origin}/auth/callback`;
+    console.log(`🔐 Callback URL: ${callbackUrl}`);
     const redirectUrl = new URL(endpoint, baseUrl);
     redirectUrl.searchParams.append("callback", callbackUrl);
     const fullUrl = redirectUrl.toString();
-    console.log(`🔐 OAuth redirect [${provider}]:`, fullUrl);
+    console.log(`🔐 Final redirect URL for [${provider}]: ${fullUrl}`);
+    console.log(`🔐 Redirecting now...`);
     window.location.assign(fullUrl);
   };
 
