@@ -5,10 +5,11 @@ WORKDIR /app
 # Install OpenSSL for Prisma
 RUN apt-get update -y && apt-get install -y openssl
 
-COPY services/user_management/package*.json ./
-COPY ./prisma ./prisma/
+# Copy package files from current context (user_management folder)
+COPY package*.json ./
+COPY prisma ./prisma/
 RUN npm install
-COPY services/user_management/. ./
+COPY . ./
 RUN npx prisma generate
 RUN npm run build
 
@@ -38,5 +39,8 @@ USER devops_user
 # - source code (.ts files)
 # - compilers or build tools
 
-EXPOSE ${USER_SERVICE_PORT}
-CMD ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && node dist/main.js"]
+EXPOSE 3001
+
+# Database migrations + start app
+# PORT can be overridden by Railway or other container orchestration
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]

@@ -10,7 +10,8 @@ import * as promClient from 'prom-client';
 
 
 async function bootstrap() {
-    const port = process.env.USER_SERVICE_PORT || 3005;
+    // Railway uses PORT, fallback to USER_SERVICE_PORT for backwards compatibility
+    const port = process.env.PORT || process.env.USER_SERVICE_PORT || 3001;
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
     // ========== PROMETHEUS METRICS ==========
@@ -85,8 +86,8 @@ async function bootstrap() {
     SwaggerModule.setup('api/users/docs', app, document);
     // ====================================
 
-    await app.listen(port);
-    console.log(`User Management Service running on port ${port}`);
+    await app.listen(port, '0.0.0.0');
+    console.log(`User Management Service running on 0.0.0.0:${port}`);
     console.log(`📚 Swagger docs: http://localhost:${port}/api/users/docs`);
 }
 bootstrap();
