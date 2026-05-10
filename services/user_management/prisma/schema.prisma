@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int      @id @default(autoincrement())
+  email             String   @unique
+  username          String?  @unique
+  password          String?
+  
+  // Profile info
+  name              String?  // Full name
+  age               Int?     // Age
+  avatar            String   @default("default-avatar.png")
+  bio               String?
+  sex               String?
+  
+  // OAuth
+  googleId          String?  @unique
+  intra42Id         String?  @unique
+  
+  // Status
+  isOnline          Boolean  @default(false)
+  isVerified        Boolean  @default(false)
+  isActive          Boolean  @default(true)
+  lastSeenAt        DateTime @default(now())
+  
+  // Relations
+  preferences       UserPreferences?
+  listings          Listing[]
+  // for chat
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([email])
+  @@index([username])
+}
+
+model UserPreferences {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @unique
+  
+  // Location & Budget
+  location        String?
+  moveInDate      DateTime?
+  budget          Int?
+  currency        String?  @default("EUR")
+  
+  // Lifestyle preferences
+  smoker          Boolean  @default(false)
+  quietHours      Boolean  @default(false)
+  earlyBird       Boolean  @default(false)
+  nightOwl        Boolean  @default(false)
+  petFriendly     Boolean  @default(false)
+  cooks           Boolean  @default(false)
+  gamer           Boolean  @default(false)
+  social          Boolean  @default(false)
+  studious        Boolean  @default(false)
+  clean           Boolean  @default(false)
+  
+  user User @relation(fields: [userId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Listing {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Basic Info
+  title           String
+  location        String
+  price           Int
+  currency        String   @default("EUR")
+  availableDate   DateTime
+  spotsTotal      Int
+  spotsFilled     Int      @default(0)
+  description     String   @db.Text
+  
+  // Images
+  images          String[] @default([])
+  
+  // Amenities
+  hasWifi         Boolean  @default(false)
+  hasKitchen      Boolean  @default(false)
+  hasLaundry      Boolean  @default(false)
+  hasMetroNearby  Boolean  @default(false)
+  hasGarden       Boolean  @default(false)
+  hasParking      Boolean  @default(false)
+  petsOK          Boolean  @default(false)
+  hasGym          Boolean  @default(false)
+  hasAC           Boolean  @default(false)
+  isSecure        Boolean  @default(false)
+  
+  // Status
+  isActive        Boolean  @default(true)
+  isPublished     Boolean  @default(true)
+  
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([location])
+  @@index([price])
+  @@index([availableDate])
+  @@index([isActive])
+}
+
+// Messaging model
+model Message {
+  id         Int      @id @default(autoincrement())
+  content    String
+  isRead     Boolean  @default(false)
+  
+  // Relations
+  senderId   Int
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  
+  receiverId Int
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  
+  // Timestamps
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
