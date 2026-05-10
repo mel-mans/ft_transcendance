@@ -54,30 +54,38 @@ export function AuthProvider({ children }: any) {
   };
 
   const getAuthBaseUrl = () => {
-    // Try to get base URL from VITE_API_BASE_URL environment variable
+    // Priority 1: Dedicated auth service URL
+    const authServiceUrl = String(import.meta.env.VITE_AUTH_SERVICE_URL || "").trim();
+    if (authServiceUrl) {
+      const cleanedUrl = authServiceUrl.replace(/\/+$/, "").replace(/\/api$/, "");
+      console.log('🔐 Using VITE_AUTH_SERVICE_URL:', cleanedUrl);
+      return cleanedUrl;
+    }
+
+    // Priority 2: General API base URL (for gateway setup)
     const configuredBase = String(import.meta.env.VITE_API_BASE_URL || "").trim();
     const rawEnvValue = import.meta.env.VITE_API_BASE_URL;
 
     if (configuredBase) {
       // Remove trailing slashes and /api suffix (endpoints already include /api)
       const cleanedUrl = configuredBase.replace(/\/+$/, "").replace(/\/api$/, "");
-      console.log('🔗 Using VITE_API_BASE_URL:', cleanedUrl);
+      console.log('🔐 Using VITE_API_BASE_URL:', cleanedUrl);
       return cleanedUrl;
     }
 
-    console.warn('⚠️ VITE_API_BASE_URL not configured. Raw env value:', rawEnvValue);
+    console.warn('⚠️ VITE_AUTH_SERVICE_URL and VITE_API_BASE_URL not configured. Raw env value:', rawEnvValue);
 
-    // Fallback: When frontend is served directly (3003/8080), use localhost
+    // Priority 3: Fallback for dev mode
     if (
       typeof window !== "undefined" &&
       ["3003", "8080"].includes(window.location.port)
     ) {
-      console.log('🔗 Using localhost fallback (dev mode on port 3003/8080)');
+      console.log('🔐 Using localhost fallback (dev mode on port 3003/8080)');
       return "https://localhost";
     }
 
     // Final fallback: use current origin (NOT RECOMMENDED for production multi-service setup)
-    console.warn('⚠️ Falling back to current origin. For Railway, set VITE_API_BASE_URL environment variable.');
+    console.warn('⚠️ Falling back to current origin. For Railway, set VITE_AUTH_SERVICE_URL environment variable.');
     return window.location.origin;
   };
 

@@ -38,8 +38,17 @@ type ApiClient = Omit<
 };
 
 const axiosInstance = axios.create({
-  // Endpoints already include `/api/...`, so strip a trailing `/api` from base URL if provided.
+  // If VITE_USER_SERVICE_URL is set, use it as base; otherwise fall back to VITE_API_BASE_URL
   baseURL: (() => {
+    // Prioritize user service URL if available
+    const userServiceUrl = String(import.meta.env.VITE_USER_SERVICE_URL || "").trim();
+    if (userServiceUrl) {
+      const cleanedUrl = userServiceUrl.replace(/\/+$/, "").replace(/\/api$/, "");
+      console.log('🔗 API: Using VITE_USER_SERVICE_URL for user endpoints:', cleanedUrl);
+      return cleanedUrl;
+    }
+
+    // Fall back to general API base URL
     const rawBase = String(import.meta.env.VITE_API_BASE_URL || "").trim();
 
     if (!rawBase) {
@@ -51,7 +60,7 @@ const axiosInstance = axios.create({
         console.log('🔗 API: Using localhost (dev mode)');
         return "https://localhost";
       }
-      console.warn('⚠️ API: No VITE_API_BASE_URL and not in dev mode, using relative URLs');
+      console.warn('⚠️ API: No VITE_API_BASE_URL or VITE_USER_SERVICE_URL set, using relative URLs');
       return undefined;
     }
 
