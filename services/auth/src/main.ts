@@ -41,20 +41,29 @@ async function bootstrap() {
 
     app.use(cookieParser());
 
-    // Enable CORS - Allow NGINX origin
+    // Enable CORS
     const allowedOrigins = [
         process.env.FRONTEND_URL,
         process.env.APP_URL,
     ].filter(Boolean);
 
-    app.enableCors({
-        origin: allowedOrigins,
+    // If no specific origins configured, allow all (for Railway/container deployments)
+    const corsOptions = {
+        origin: allowedOrigins.length > 0 ? allowedOrigins : true,
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
         preflightContinue: false,
         optionsSuccessStatus: 204,
-    });
+    };
+
+    if (allowedOrigins.length === 0) {
+        console.warn('⚠️  CORS: No FRONTEND_URL or APP_URL set, allowing all origins');
+    } else {
+        console.log('✅ CORS: Allowed origins:', allowedOrigins);
+    }
+
+    app.enableCors(corsOptions);
 
     app.useGlobalPipes(new ValidationPipe({
         whitelist: true,

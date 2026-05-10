@@ -45,16 +45,28 @@ async function bootstrap() {
     // =========================================
     app.use(cookieParser());
     // ========== ENABLE CORS ==========
-    app.enableCors({
-        origin: [
-            process.env.APP_URL,
-        ].filter(Boolean),
+    const allowedOrigins = [
+        process.env.FRONTEND_URL,
+        process.env.APP_URL,
+    ].filter(Boolean);
+
+    // If no specific origins configured, allow all (for Railway/container deployments)
+    const corsOptions = {
+        origin: allowedOrigins.length > 0 ? allowedOrigins : true,
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
         preflightContinue: false,
         optionsSuccessStatus: 204,
-    });
+    };
+
+    if (allowedOrigins.length === 0) {
+        console.warn('⚠️  CORS: No FRONTEND_URL or APP_URL set, allowing all origins');
+    } else {
+        console.log('✅ CORS: Allowed origins:', allowedOrigins);
+    }
+
+    app.enableCors(corsOptions);
 
     // ========== SERVE STATIC FILES ==========
     app.useStaticAssets(join(__dirname, '..', 'uploads'), {
